@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>Jds.$(MSBuildProjectName)</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
+    <PackageReference Include="NiceNotice" Version="0.1.0-build-20251005-231038-sha-911c073" />
+  </ItemGroup>
+
+</Project>

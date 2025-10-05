@@ -1,0 +1,6 @@
+@NiceNotice.Tests.ExampleWebApi_HostAddress = http://localhost:5217
+
+GET {{NiceNotice.Tests.ExampleWebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
