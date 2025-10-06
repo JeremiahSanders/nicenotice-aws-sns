@@ -6,13 +6,39 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Jds.$(MSBuildProjectName)</RootNamespace>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Product>NiceNotice.Aws.Sns</Product>
+    <PackageId>NiceNotice.Aws.Sns</PackageId>
+    <Authors>jds</Authors>
+    <Company/>
+    <Copyright>Copyright (c) 2025 Jeremiah Sanders</Copyright>
+    <Description>Notification dispatch I/O adapter for NiceNotice which sends messages to Amazon Web Services (AWS) Simple Notification Service (SNS).</Description>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/JeremiahSanders/nicenotice-aws-sns</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>events;event bus;notifications;sns</PackageTags>
+    <PackAsTool>false</PackAsTool>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/JeremiahSanders/nicenotice-aws-sns</RepositoryUrl>
+    <Title>NiceNotice AWS SNS I/O</Title>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
-    <PackageReference Include="NiceNotice" Version="0.1.0-build-20251005-231038-sha-911c073" />
+    <PackageReference Include="NiceNotice" Version="0.1.0-build-20251005-231038-sha-911c073"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
