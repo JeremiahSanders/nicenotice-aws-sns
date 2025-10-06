@@ -76,4 +76,28 @@ public static class SnsJsonAssertions
       return false;
     }
   }
+
+  public static bool MatchesMessageJsonPropertyElement(
+    PublishRequest publishRequest,
+    string rootObjectPropertyName,
+    Func<JsonElement, bool> assertion,
+    JsonDocumentOptions? options = null
+  )
+  {
+    try
+    {
+      return MatchesMessageJson(
+        publishRequest,
+        doc => assertion(
+          doc
+            .RootElement.GetProperty(rootObjectPropertyName)
+        ),
+        options
+      );
+    }
+    catch
+    {
+      return false;
+    }
+  }
 }

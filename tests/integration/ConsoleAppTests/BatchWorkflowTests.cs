@@ -103,6 +103,11 @@ public class BatchWorkflowTests
           rootObjectPropertyName: "schema",
           enterpriseEventName
         )
+        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
+          snsMessage,
+          rootObjectPropertyName: "timestamp",
+          jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
+        )
         && snsMessage.TopicArn == expectedTopic
       );
   }

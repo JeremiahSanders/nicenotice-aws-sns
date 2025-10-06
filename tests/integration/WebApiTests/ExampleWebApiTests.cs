@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Unit;
 using Jds.TestingUtils.Randomization;
@@ -19,106 +20,10 @@ public class ExampleWebApiTests
   [ClassDataSource<ExampleApiWebApplicationFactory>(Shared = SharedType.PerTestSession)]
   public required ExampleApiWebApplicationFactory ExampleApiWebApplicationFactory { get; init; }
 
-
-  [Test]
-  public async Task BeginningSessionSucceedsWithExpectedResponse()
-  {
-    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
-
-    // Assert
-    await Assert
-      .That(response.StatusCode)
-      .IsEqualTo(HttpStatusCode.OK);
-
-    await Assert
-      .That(deserializedContent.SessionId)
-      .IsNotNullOrWhitespace();
-  }
-
-  [Test]
-  public async Task BeginningSessionLogsNoErrors()
-  {
-    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
-
-    // Assert - Verify logging (side effect)
-    IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
-    await Assert
-      .That(recentLogs)
-      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
-  }
-
-  [Test]
-  public async Task BeginningSessionEmitsExpectedEnterpriseEventToSns()
-  {
-    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
-
-    // Assert - Verify SNS emission (side effect)
-    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
-    await Assert
-      .That(sns.CapturedRequests)
-      .Contains(snsMessage =>
-        {
-          BeginSessionEvent? eventDto = JsonSerializer.Deserialize<BeginSessionEvent>(
-            snsMessage.Message,
-            JsonDefaults.DefaultJsonSerializerOptions
-          );
-
-          return eventDto?.SessionId == deserializedContent.SessionId;
-        }
-      );
-  }
-
-  [Test]
-  public async Task EndingSessionSucceedsWithExpectedResponse()
-  {
-    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
-      await Act_BeginAndEndSession();
-
-    // Assert
-    await Assert
-      .That(endSessionResponse.StatusCode)
-      .IsEqualTo(HttpStatusCode.OK);
-  }
-
-  [Test]
-  public async Task EndingSessionLogsNoErrors()
-  {
-    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
-      await Act_BeginAndEndSession();
-
-    // Assert - Verify logging (side effect)
-    IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
-    await Assert
-      .That(recentLogs)
-      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
-  }
-
-  [Test]
-  public async Task EndingSessionEmitsExpectedEnterpriseEventToSns()
-  {
-    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
-      await Act_BeginAndEndSession();
-
-    // Assert -  Verify SNS emission (side effect)
-    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
-    await Assert
-      .That(sns.CapturedRequests)
-      .Contains(snsMessage =>
-        {
-          EndSessionEvent? eventDto = JsonSerializer.Deserialize<EndSessionEvent>(
-            snsMessage.Message,
-            JsonDefaults.DefaultJsonSerializerOptions
-          );
-
-          return eventDto?.SessionId == beginSessionResponseBody.SessionId
-                 && eventDto?.Duration.HasValue == true;
-        }
-      );
-  }
-
-
+  /// <summary>
+  ///   Invokes the <c>begin session</c> HTTP API and returns the results.
+  /// </summary>
+  /// <returns></returns>
   private async Task<(HttpResponseMessage response, BeginSessionResult deserializedContent)> Act_BeginSessionAsync()
   {
     using HttpClient client = ExampleApiWebApplicationFactory.CreateClient();
@@ -138,6 +43,12 @@ public class ExampleWebApiTests
     return (response, deserializedContent);
   }
 
+
+  /// <summary>
+  ///   Invokes the <c>begin session</c> HTTP API and subsequently the <c>end session</c> HTTP API,
+  ///   returning the responses of each.
+  /// </summary>
+  /// <returns></returns>
   private async Task<(BeginSessionResult beginSessionResponseBody, HttpResponseMessage response)>
     Act_BeginAndEndSession()
   {
@@ -166,14 +77,20 @@ public class ExampleWebApiTests
     return (beginSessionResponseBody, response);
   }
 
+  #region API DTOs
 
   /// <summary>
   ///   A record expressing the expected schema of the &quot;user session started&quot; enterprise event.
   /// </summary>
   public record BeginSessionEvent
   {
-    public string Name { get; init; } = string.Empty;
+    [JsonPropertyName(name: "schema")]
+    public string Schema { get; init; } = string.Empty;
+
+    [JsonPropertyName(name: "timestamp")]
     public DateTime Timestamp { get; init; }
+
+    [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
   }
 
@@ -182,17 +99,158 @@ public class ExampleWebApiTests
   /// </summary>
   public record EndSessionEvent
   {
-    public string Name { get; init; } = string.Empty;
+    [JsonPropertyName(name: "schema")]
+    public string Schema { get; init; } = string.Empty;
+
+    [JsonPropertyName(name: "timestamp")]
     public DateTime Timestamp { get; init; }
+
+    [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
+
+    [JsonPropertyName(name: "duration")]
     public TimeSpan? Duration { get; init; }
   }
 
   /// <summary>
-  ///   A record expressing the expected API response from the &quot;begin session&quot; example web API.
+  ///   A record expressing the expected HTTP API response from the &quot;begin session&quot; example web API.
   /// </summary>
   public record BeginSessionResult
   {
+    [JsonPropertyName(name: "sessionId")]
     public string? SessionId { get; init; }
   }
+
+  #endregion
+
+  #region Beginning Session
+
+  [Test]
+  public async Task BeginningSessionSucceedsWithExpectedResponse()
+  {
+    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
+
+    // Assert
+    await Assert
+      .That(response.StatusCode)
+      .IsEqualTo(HttpStatusCode.OK);
+
+    await Assert
+      .That(deserializedContent.SessionId)
+      .IsNotNullOrWhitespace();
+  }
+
+  [Test]
+  public async Task BeginningSessionLogsNoErrors()
+  {
+    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
+
+    // Assert - Verify logging (side effect)
+    IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
+    await Assert
+      .That(recentLogs)
+      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
+  }
+
+  /// <summary>
+  ///   This test verifies that beginning a session emits a <see cref="BeginSessionEvent" /> to the configured
+  ///   user session AWS SNS topic.
+  /// </summary>
+  [Test]
+  public async Task BeginningSessionEmitsExpectedEnterpriseEventToSns()
+  {
+    const string expectedTopic = "arn:aws:sns:us-east-1:123456789012:user-sessions";
+    const string expectedSchema = "UserSessionStarted";
+    (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
+
+    // Assert - Verify SNS emission (side effect)
+    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
+    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    await Assert
+      .That(sns.CapturedRequests)
+      .Contains(snsMessage =>
+        {
+          BeginSessionEvent? eventDto = JsonSerializer.Deserialize<BeginSessionEvent>(
+            snsMessage.Message,
+            JsonDefaults.DefaultJsonSerializerOptions
+          );
+
+          bool doesDataMatch = eventDto?.SessionId == deserializedContent.SessionId
+                               && eventDto?.Timestamp != DateTime.MinValue
+                               && eventDto?.Schema == expectedSchema;
+          bool doesTopicMatch = snsMessage.TopicArn == expectedTopic;
+
+          return doesDataMatch && doesTopicMatch;
+        }
+      );
+  }
+
+  #endregion
+
+  #region Ending Session
+
+  [Test]
+  public async Task EndingSessionSucceedsWithExpectedResponse()
+  {
+    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
+      await Act_BeginAndEndSession();
+
+    // Assert
+    await Assert
+      .That(endSessionResponse.StatusCode)
+      .IsEqualTo(HttpStatusCode.OK);
+  }
+
+  [Test]
+  public async Task EndingSessionLogsNoErrors()
+  {
+    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
+      await Act_BeginAndEndSession();
+
+    // Assert - Verify logging (side effect)
+    IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
+    await Assert
+      .That(recentLogs)
+      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
+  }
+
+  /// <summary>
+  ///   This test verifies that ending a session emits a <see cref="EndSessionEvent" /> to the configured
+  ///   user session AWS SNS topic.
+  /// </summary>
+  [Test]
+  public async Task EndingSessionEmitsExpectedEnterpriseEventToSns()
+  {
+    const string expectedTopic = "arn:aws:sns:us-east-1:123456789012:user-sessions";
+    const string expectedSchema = "UserSessionEnded";
+    (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
+      await Act_BeginAndEndSession();
+
+    // Assert -  Verify SNS emission (side effect)
+    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
+    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    await Assert
+      .That(sns.CapturedRequests)
+      .Contains(snsMessage =>
+        {
+          // Note that EndSessionEvent is NOT the type used in the web API (UserSessionEnded). It is defined in this test class.
+          //   This shows how tests, like real runtime notification consumers in an organization,
+          //   can define their own DTOs based upon a documented notification schema.  
+          EndSessionEvent? eventDto = JsonSerializer.Deserialize<EndSessionEvent>(
+            snsMessage.Message,
+            JsonDefaults.DefaultJsonSerializerOptions
+          );
+
+          bool doesTheDataMatch = eventDto?.SessionId == beginSessionResponseBody.SessionId
+                                  && eventDto?.Duration.HasValue == true
+                                  && eventDto.Timestamp != DateTime.MinValue
+                                  && eventDto.Schema == expectedSchema;
+          bool doesTheSnsTopicMatch = snsMessage.TopicArn == expectedTopic;
+
+          return doesTheDataMatch && doesTheSnsTopicMatch;
+        }
+      );
+  }
+
+  #endregion
 }
