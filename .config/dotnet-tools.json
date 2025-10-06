@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "cicee": {
+      "version": "1.14.0",
+      "commands": [
+        "cicee"
+      ],
+      "rollForward": false
+    },
+    "xmldocmd": {
+      "version": "2.9.0",
+      "commands": [
+        "xmldocmd"
+      ],
+      "rollForward": false
+    }
+  }
+}
