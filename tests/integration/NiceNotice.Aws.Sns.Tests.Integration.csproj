@@ -5,13 +5,14 @@
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
     <RootNamespace>Jds.$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.20"/>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.10.0"/>
-    <PackageReference Include="TUnit" Version="0.61.6"/>
+    <PackageReference Include="TUnit" Version="0.73.4" />
   </ItemGroup>
 
   <ItemGroup>

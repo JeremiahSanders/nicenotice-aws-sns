@@ -38,7 +38,7 @@ public class ExampleWebApiTests
         userId = $"user-{Randomizer.Shared.IntPositive()}"
       }
     );
-    BeginSessionResult deserializedContent = await response.DeserializeContentAsync<BeginSessionResult>();
+    var deserializedContent = await response.DeserializeContentAsync<BeginSessionResult>();
 
     return (response, deserializedContent);
   }
@@ -63,7 +63,7 @@ public class ExampleWebApiTests
         userId
       }
     );
-    BeginSessionResult beginSessionResponseBody = await beginApiResponse.DeserializeContentAsync<BeginSessionResult>();
+    var beginSessionResponseBody = await beginApiResponse.DeserializeContentAsync<BeginSessionResult>();
 
     // Act
     HttpResponseMessage response = await client.PostAsJsonAsync(
@@ -137,7 +137,7 @@ public class ExampleWebApiTests
 
     await Assert
       .That(deserializedContent.SessionId)
-      .IsNotNullOrWhitespace();
+      .IsNotNullOrEmpty();
   }
 
   [Test]
@@ -149,7 +149,7 @@ public class ExampleWebApiTests
     IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
     await Assert
       .That(recentLogs)
-      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
+      .DoesNotContain((FakeLogRecord fakeLogRecord) => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
   }
 
   /// <summary>
@@ -165,12 +165,12 @@ public class ExampleWebApiTests
 
     // Assert - Verify SNS emission (side effect)
     using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    var sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
     await Assert
       .That(sns.CapturedRequests)
       .Contains(snsMessage =>
         {
-          BeginSessionEvent? eventDto = JsonSerializer.Deserialize<BeginSessionEvent>(
+          var eventDto = JsonSerializer.Deserialize<BeginSessionEvent>(
             snsMessage.Message,
             JsonDefaults.DefaultJsonSerializerOptions
           );
@@ -209,9 +209,10 @@ public class ExampleWebApiTests
 
     // Assert - Verify logging (side effect)
     IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
+
     await Assert
       .That(recentLogs)
-      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
+      .DoesNotContain((Func<FakeLogRecord, bool>)(record => record.Level is LogLevel.Error or LogLevel.Critical));
   }
 
   /// <summary>
@@ -228,7 +229,7 @@ public class ExampleWebApiTests
 
     // Assert -  Verify SNS emission (side effect)
     using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    MockSns sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    var sns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
     await Assert
       .That(sns.CapturedRequests)
       .Contains(snsMessage =>
@@ -236,7 +237,7 @@ public class ExampleWebApiTests
           // Note that EndSessionEvent is NOT the type used in the web API (UserSessionEnded). It is defined in this test class.
           //   This shows how tests, like real runtime notification consumers in an organization,
           //   can define their own DTOs based upon a documented notification schema.  
-          EndSessionEvent? eventDto = JsonSerializer.Deserialize<EndSessionEvent>(
+          var eventDto = JsonSerializer.Deserialize<EndSessionEvent>(
             snsMessage.Message,
             JsonDefaults.DefaultJsonSerializerOptions
           );
