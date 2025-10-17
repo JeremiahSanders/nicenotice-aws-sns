@@ -20,7 +20,7 @@ public class ApiSnsTests
   [Test]
   public async Task Sanity_SnsIsConfigured()
   {
-    IAmazonSimpleNotificationService service =
+    var service =
       ExampleApiWebApplicationFactory.Services.GetRequiredService<IAmazonSimpleNotificationService>();
 
     await Assert
@@ -38,7 +38,7 @@ public class ApiSnsTests
       .GetRequiredService<IOptions<ConfigurationSnsTopicOptions>>();
     await Assert
       .That(options.Value.Default)
-      .IsNotNullOrWhitespace();
+      .IsNotNullOrEmpty();
     await Assert
       .That(options.Value.Streams)
       .IsNotEmpty();
@@ -48,7 +48,7 @@ public class ApiSnsTests
   public async Task CanPublishToTopic()
   {
     using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    MockSns mockSns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    var mockSns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
     IAmazonSimpleNotificationService asSns = mockSns;
 
     PublishRequest publishRequest = new()

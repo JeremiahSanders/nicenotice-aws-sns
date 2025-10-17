@@ -29,7 +29,7 @@ public class BatchWorkflowTests
 
   private async Task<BatchWorkflowResult> ActAsync(ConsoleAppHarness harness)
   {
-    BatchWorkflow workflow = harness.ApplicationHost.Services.GetRequiredService<BatchWorkflow>();
+    var workflow = harness.ApplicationHost.Services.GetRequiredService<BatchWorkflow>();
 
     // Act
     BatchWorkflowResult result = await workflow.RunAsync();
@@ -52,7 +52,9 @@ public class BatchWorkflowTests
       .GetSnapshot();
     await Assert
       .That(logs)
-      .DoesNotContain(logRecord => logRecord.Level is LogLevel.Error or LogLevel.Critical or LogLevel.Warning);
+      .DoesNotContain((FakeLogRecord logRecord) =>
+        logRecord.Level is LogLevel.Error or LogLevel.Critical or LogLevel.Warning
+      );
   }
 
   [Test]
@@ -70,8 +72,8 @@ public class BatchWorkflowTests
       .GetSnapshot();
     await Assert
       .That(logs)
-      .Contains(logRecord => logRecord.Level is LogLevel.Information &&
-                             logRecord.Message.Contains(value: "Batch workflow completed successfully.")
+      .Contains((FakeLogRecord logRecord) => logRecord.Level is LogLevel.Information &&
+                                             logRecord.Message.Contains(value: "Batch workflow completed successfully.")
       );
   }
 
@@ -94,7 +96,7 @@ public class BatchWorkflowTests
     BatchWorkflowResult result = await ActAsync(consoleAppHarness);
 
     // Assert
-    MockSns sns = consoleAppHarness.ApplicationHost.Services.GetRequiredService<MockSns>();
+    var sns = consoleAppHarness.ApplicationHost.Services.GetRequiredService<MockSns>();
     await Assert
       .That(sns.CapturedRequests)
       .Contains(snsMessage =>

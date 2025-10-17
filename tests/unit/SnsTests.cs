@@ -62,7 +62,7 @@ public class SnsTests
     services.AddNiceNotice(builder =>
       builder
         .UseTypedNotices<ExampleBaseEnterpriseEvent>(
-          eeBuilder => eeBuilder.WithConstantStream((EventStreamId)constantStream),
+          eeBuilder => eeBuilder.RouteToConstantStream((EventStreamId)constantStream),
           ServiceLifetime.Singleton
         )
         .WithSnsDispatch(
@@ -81,10 +81,10 @@ public class SnsTests
   [Fact]
   public async Task CanArrangeAwsIo()
   {
-    string defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
+    var defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
     IServiceCollection services = CreateServices(defaultTopic);
     ServiceProvider provider = services.BuildServiceProvider();
-    MockSns mockSns = provider.GetRequiredService<MockSns>();
+    var mockSns = provider.GetRequiredService<MockSns>();
 
     ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent> dispatch =
       provider.GetEnterpriseEventDispatcher<ExampleBaseEnterpriseEvent>();

@@ -47,7 +47,7 @@ builder.Services.AddNiceNotice(niceNoticeBuilder => niceNoticeBuilder
             }
           )
         )
-        .WithDataAnnotationsValidator(),
+        .ValidateWithDataAnnotations(),
     ServiceLifetime.Singleton
   )
   // Dispatch enterprise events to Amazon Web Services SNS.
