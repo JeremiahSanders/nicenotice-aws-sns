@@ -1,5 +1,7 @@
 # ISnsTopicResolver interface
 
+A service which resolves SNS topic ARNs for a given event stream. I.e., given an event stream identifier, it returns the SNS topic ARN to which the event stream should be dispatched.
+
 ```csharp
 public interface ISnsTopicResolver
 ```
@@ -8,7 +10,7 @@ public interface ISnsTopicResolver
 
 | name | description |
 | --- | --- |
-| [GetTopicArn](ISnsTopicResolver/GetTopicArn.md)(…) |  |
+| [GetTopicArn](ISnsTopicResolver/GetTopicArn.md)(…) | Gets the SNS topic ARN for a given event stream. |
 
 ## See Also
 

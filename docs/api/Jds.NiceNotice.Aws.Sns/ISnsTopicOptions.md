@@ -1,5 +1,7 @@
 # ISnsTopicOptions interface
 
+An interface for configuring SNS topic mappings.
+
 ```csharp
 public interface ISnsTopicOptions
 ```

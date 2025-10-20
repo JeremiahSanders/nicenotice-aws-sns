@@ -1,5 +1,8 @@
 namespace Jds.NiceNotice.Aws.Sns;
 
+/// <summary>
+///   An interface for configuring SNS topic mappings.
+/// </summary>
 public interface ISnsTopicOptions
 {
   /// <summary>

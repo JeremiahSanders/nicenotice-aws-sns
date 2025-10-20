@@ -118,7 +118,7 @@ public class BatchWorkflow(
         await dispatcher.TryDispatchAsync(
           new ExtractedImportantInformation
           {
-            Id = dataEntry.Key
+            DataValueId = dataEntry.Key
           },
           (notice, exception) => logger.LogError(
             exception,

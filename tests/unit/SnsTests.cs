@@ -26,7 +26,7 @@ public class SnsTests
 
     ServiceProvider provider = services.BuildServiceProvider();
 
-    MockSns mockSns = provider.GetRequiredService<MockSns>();
+    var mockSns = provider.GetRequiredService<MockSns>();
     IAmazonSimpleNotificationService fakeSns = mockSns;
 
 
@@ -65,9 +65,11 @@ public class SnsTests
           eeBuilder => eeBuilder.RouteToConstantStream((EventStreamId)constantStream),
           ServiceLifetime.Singleton
         )
-        .WithSnsDispatch(
-          snsBuilder =>
-            snsBuilder.WithDefaultTopic(defaultTopic),
+        .DispatchToSns(
+          new ConfigurationSnsTopicOptions
+          {
+            Default = defaultTopic
+          },
           ServiceLifetime.Singleton
         )
     );
@@ -81,7 +83,7 @@ public class SnsTests
   [Fact]
   public async Task CanArrangeAwsIo()
   {
-    var defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
+    string defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
     IServiceCollection services = CreateServices(defaultTopic);
     ServiceProvider provider = services.BuildServiceProvider();
     var mockSns = provider.GetRequiredService<MockSns>();

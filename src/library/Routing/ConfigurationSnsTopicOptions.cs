@@ -15,7 +15,7 @@ namespace Jds.NiceNotice.Aws.Sns;
 ///   <para>
 ///     This class is registered as an <see cref="IOptions{TOptions}" /> service when using the
 ///     <see
-///       cref="SnsNotificationBuilderExtensions.WithSnsDispatch" />
+///       cref="SnsNotificationBuilderExtensions.DispatchToSns(NiceNoticeBuilder,string,ServiceLifetime)" />
 ///     extension method during application startup.
 ///   </para>
 /// </remarks>
@@ -28,11 +28,15 @@ public class ConfigurationSnsTopicOptions : ISnsTopicOptions
   /// </summary>
   public Dictionary<string, string> Streams { get; set; } = [];
 
-  /// <inheritdoc />
-  IReadOnlyDictionary<string, string> ISnsTopicOptions.Map => Streams;
-
   /// <summary>
   ///   Gets or sets the default SNS topic used when a specific mapping for a stream is not found.
   /// </summary>
   public string? Default { get; set; }
+
+  #region ISnsTopicOptions
+
+  /// <inheritdoc />
+  IReadOnlyDictionary<string, string> ISnsTopicOptions.Map => Streams;
+
+  #endregion
 }
