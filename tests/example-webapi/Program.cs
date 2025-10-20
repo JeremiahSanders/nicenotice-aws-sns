@@ -51,7 +51,7 @@ builder.Services.AddNiceNotice(niceNoticeBuilder => niceNoticeBuilder
     ServiceLifetime.Singleton
   )
   // Dispatch enterprise events to Amazon Web Services SNS.
-  .WithSnsDispatch(
+  .DispatchToSns(
     configurationSectionPath: "sns:topics",
     ServiceLifetime.Singleton
   )
@@ -88,7 +88,7 @@ namespace NiceNotice.Tests.ExampleWebApi
   ///     ASP.NET Core integration test guidance.
   ///   </a>
   /// </remarks>
-  public partial class Program
+  public class Program
   {
   }
 }

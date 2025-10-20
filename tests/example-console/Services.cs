@@ -80,13 +80,11 @@ public static class Services
            *
            *   Remember: Stream identities support logical routing; they are not direct representations of I/O streams.
            */
-          typedNoticeBuilder.UseStreamSelector(
-            StreamSelectors.Constant<BatchWorkerEvent>((EventStreamId)"batch-worker-events")
-          ),
+          typedNoticeBuilder.RouteToConstantStream((EventStreamId)"batch-worker-events"),
         ServiceLifetime.Singleton
       )
       // Dispatch enterprise events to Amazon Web Services SNS.
-      .WithSnsDispatch(
+      .DispatchToSns(
         snsTopicsConfigurationSectionPath,
         ServiceLifetime.Singleton
       )

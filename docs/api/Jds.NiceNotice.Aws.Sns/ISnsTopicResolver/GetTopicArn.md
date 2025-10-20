@@ -1,8 +1,18 @@
 # ISnsTopicResolver.GetTopicArn method
 
+Gets the SNS topic ARN for a given event stream.
+
 ```csharp
 public string GetTopicArn(EventStreamId stream)
 ```
+
+| parameter | description |
+| --- | --- |
+| stream | An event stream identifier. |
+
+## Return Value
+
+Returns the SNS topic ARN to which the event stream should be dispatched.
 
 ## See Also
 

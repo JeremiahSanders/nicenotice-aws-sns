@@ -1,5 +1,7 @@
 # SnsNotificationBuilderExtensions class
 
+Methods extending the NiceNoticeBuilder to configure SNS dispatching.
+
 ```csharp
 public static class SnsNotificationBuilderExtensions
 ```
@@ -8,7 +10,7 @@ public static class SnsNotificationBuilderExtensions
 
 | name | description |
 | --- | --- |
-| static [WithSnsDispatch](SnsNotificationBuilderExtensions/WithSnsDispatch.md)(…) |  (4 methods) |
+| static [DispatchToSns](SnsNotificationBuilderExtensions/DispatchToSns.md)(…) | Configures the NiceNoticeBuilder to use Amazon SNS for dispatching notifications via a custom INoticeIo interface, [`ISnsNoticeIo`](./ISnsNoticeIo.md). (The [`ISnsNoticeIo`](./ISnsNoticeIo.md) interface is also registered by this method, in addition to the registration of INoticeIo.) (3 methods) |
 
 ## See Also
 
