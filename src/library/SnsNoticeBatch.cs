@@ -1,0 +1,27 @@
+using Amazon.SimpleNotificationService.Model;
+
+namespace Jds.NiceNotice.Aws.Sns;
+
+internal class SnsNoticeBatch
+{
+  public required string TopicArn { get; init; }
+  public required List<BatchedIoResponseNotice> Notices { get; init; }
+
+  public PublishBatchRequest ToPublishBatchRequest()
+  {
+    return new PublishBatchRequest
+    {
+      TopicArn = TopicArn,
+      PublishBatchRequestEntries = Notices.Select(FromNotice).ToList()
+    };
+  }
+
+  private static PublishBatchRequestEntry FromNotice(BatchedIoResponseNotice notice)
+  {
+    return new PublishBatchRequestEntry
+    {
+      Id = notice.BatchNoticeId,
+      Message = notice.Notice
+    };
+  }
+}

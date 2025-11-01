@@ -47,7 +47,7 @@ public class BatchWorkflow(
     Dictionary<string, List<string>> parsedData;
     List<string[]> outputCsvLines;
 
-    Stopwatch timer = Stopwatch.StartNew();
+    var timer = Stopwatch.StartNew();
 
     try
     {
@@ -112,22 +112,25 @@ public class BatchWorkflow(
 
     // Dispatch enterprise events to notify other applications of the extracted data.
     //   Parallelization requires that the dispatcher be thread-safe.
-    await Parallel.ForEachAsync(
-      parsedData,
-      async (dataEntry, cancellationToken) =>
-        await dispatcher.TryDispatchAsync(
-          new ExtractedImportantInformation
+    DispatchBatchRequest<BatchWorkerEvent> events = new()
+    {
+      Notices = parsedData
+        .Select(dataEntry => new ExtractedImportantInformation
           {
             DataValueId = dataEntry.Key
-          },
-          (notice, exception) => logger.LogError(
-            exception,
-            message: "Failed to dispatch extracted important information notice. {Notice}",
-            notice
-          ),
-          cancellationToken
+          }
         )
-    );
+        .ToDictionary(notice => Guid.NewGuid().ToString(), BatchWorkerEvent (notice) => notice)
+    };
+    BatchTypedNoticeDispatchResult batchDispatchResults = await dispatcher.DispatchBatchAsync(events);
+    foreach ((BatchRoutedTypedNoticeResponse response, Exception exception) in batchDispatchResults.Failures)
+    {
+      logger.LogError(
+        exception,
+        message: "Failed to dispatch extracted important information notice. {Notice}",
+        (BatchWorkerEvent)response.Notice
+      );
+    }
 
     logger.LogInformation(message: "Batch workflow completed successfully. Duration: {Duration}", timer.Elapsed);
 
@@ -256,7 +259,7 @@ public class BatchWorkflow(
     return string.Join(
       separator: "\n",
       Enumerable
-        .Range(start: 0, count: 10)
+        .Range(start: 0, Random.Shared.Next(minValue: 14, maxValue: 91))
         .Select(_ => Guid.NewGuid())
     );
   }

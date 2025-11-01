@@ -3,7 +3,7 @@
 A notification dispatcher that sends messages to Amazon SNS topics.
 
 ```csharp
-public interface ISnsNoticeIo : INoticeIo
+public interface ISnsNoticeIo : INoticeBatchIo
 ```
 
 ## Members

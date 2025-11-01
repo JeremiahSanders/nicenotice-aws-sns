@@ -8,6 +8,7 @@
 | interface [ISnsNoticeIo](./Jds.NiceNotice.Aws.Sns/ISnsNoticeIo.md) | A notification dispatcher that sends messages to Amazon SNS topics. |
 | interface [ISnsTopicOptions](./Jds.NiceNotice.Aws.Sns/ISnsTopicOptions.md) | An interface for configuring SNS topic mappings. |
 | interface [ISnsTopicResolver](./Jds.NiceNotice.Aws.Sns/ISnsTopicResolver.md) | A service which resolves SNS topic ARNs for a given event stream. I.e., given an event stream identifier, it returns the SNS topic ARN to which the event stream should be dispatched. |
+| class [SnsIoException](./Jds.NiceNotice.Aws.Sns/SnsIoException.md) | An exception related to notification dispatch using AWS Simple Notification Service (SNS). |
 | class [SnsNoticeIo](./Jds.NiceNotice.Aws.Sns/SnsNoticeIo.md) | A notification dispatcher that sends messages to Amazon SNS topics. |
 | static class [SnsNotificationBuilderExtensions](./Jds.NiceNotice.Aws.Sns/SnsNotificationBuilderExtensions.md) | Methods extending the NiceNoticeBuilder to configure SNS dispatching. |
 | class [SnsStreamRoutingException](./Jds.NiceNotice.Aws.Sns/SnsStreamRoutingException.md) | Represents an exception which is thrown when unable to route an event stream to an SNS topic. |
