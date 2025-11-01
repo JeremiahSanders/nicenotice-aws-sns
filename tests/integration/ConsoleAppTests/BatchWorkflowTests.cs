@@ -79,7 +79,6 @@ public class BatchWorkflowTests
 
   [Test]
   [Arguments("BatchExtractionComplete")]
-  [Arguments("ExtractedImportantInformation")]
   public async Task EmitsEventToSns(string enterpriseEventName)
   {
     // Arrange
@@ -107,6 +106,50 @@ public class BatchWorkflowTests
         )
         && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
           snsMessage,
+          rootObjectPropertyName: "timestamp",
+          jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
+        )
+        && snsMessage.TopicArn == expectedTopic
+      );
+  }
+
+  [Test]
+  [Arguments("ExtractedImportantInformation")]
+  public async Task EmitsBatchEventToSns(string enterpriseEventName)
+  {
+    // Arrange
+    using ConsoleAppHarness consoleAppHarness = new();
+    string expectedTopic = ConsoleAppHarness.DefaultConfiguration.Single(kvp => kvp.Key.Equals(
+                                 value: "sns:topics:default",
+                                 StringComparison.OrdinalIgnoreCase
+                               )
+                             )
+                             .Value
+                           ?? throw new InvalidOperationException(message: "Default topic not configured");
+
+    // Act
+    BatchWorkflowResult result = await ActAsync(consoleAppHarness);
+
+    // Assert
+    var sns = consoleAppHarness.ApplicationHost.Services.GetRequiredService<MockSns>();
+    await Assert
+      .That(
+        sns.CapturedBatchRequests.SelectMany(batch => batch.PublishBatchRequestEntries.Select(entry => new
+            {
+              batch.TopicArn,
+              entry
+            }
+          )
+        )
+      )
+      .Contains(snsMessage =>
+        SnsJsonAssertions.MatchesMessageJsonPropertyExact(
+          snsMessage.entry,
+          rootObjectPropertyName: "schema",
+          enterpriseEventName
+        )
+        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
+          snsMessage.entry,
           rootObjectPropertyName: "timestamp",
           jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
         )

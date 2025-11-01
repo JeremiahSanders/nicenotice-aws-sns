@@ -11,6 +11,9 @@ using Shouldly;
 
 namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
+/// <summary>
+///   Tests verifying <see cref="MockSns" /> behavior and its ability to serve test needs.
+/// </summary>
 public class SnsTests
 {
   /// <summary>

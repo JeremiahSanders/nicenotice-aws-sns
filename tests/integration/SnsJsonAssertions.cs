@@ -100,4 +100,59 @@ public static class SnsJsonAssertions
       return false;
     }
   }
+
+  public static bool MatchesMessageJsonPropertyExact(
+    PublishBatchRequestEntry publishRequest,
+    string rootObjectPropertyName,
+    string rootObjectPropertyValue,
+    JsonDocumentOptions? options = null
+  )
+  {
+    try
+    {
+      return MatchesMessageJson(
+        publishRequest,
+        doc => doc
+          .RootElement.GetProperty(rootObjectPropertyName)
+          .GetString() == rootObjectPropertyValue,
+        options
+      );
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  private static bool MatchesMessageJson(
+    PublishBatchRequestEntry publishRequest,
+    Expression<Func<JsonDocument, bool>> assertion,
+    JsonDocumentOptions? options = null)
+  {
+    return MatchesJson(publishRequest.Message, assertion, options);
+  }
+
+  public static bool MatchesMessageJsonPropertyElement(
+    PublishBatchRequestEntry publishRequest,
+    string rootObjectPropertyName,
+    Func<JsonElement, bool> assertion,
+    JsonDocumentOptions? options = null
+  )
+  {
+    try
+    {
+      return MatchesMessageJson(
+        publishRequest,
+        doc => assertion(
+          doc
+            .RootElement.GetProperty(rootObjectPropertyName)
+        ),
+        options
+      );
+    }
+    catch
+    {
+      return false;
+    }
+  }
 }

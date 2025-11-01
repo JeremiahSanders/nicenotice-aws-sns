@@ -22,7 +22,7 @@ The notification message that was dispatched.
 | exception | condition |
 | --- | --- |
 | ArgumentNullException | Thrown when *notice* is `null`. |
-| IOException | Thrown when SNS throws an exception. |
+| [SnsIoException](../SnsIoException.md) | Thrown when SNS throws an exception. |
 
 ## See Also
 

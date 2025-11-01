@@ -12,6 +12,7 @@ public class SnsNoticeIo : ISnsNoticeIo
 | --- | --- |
 | [SnsNoticeIo](SnsNoticeIo/SnsNoticeIo.md)(…) | A notification dispatcher that sends messages to Amazon SNS topics. |
 | [DispatchAsync](SnsNoticeIo/DispatchAsync.md)(…) | Sends a notification message to a specified event stream using Amazon SNS. |
+| [DispatchNoticesAsync](SnsNoticeIo/DispatchNoticesAsync.md)(…) | Uses the [`ISnsTopicResolver`](./ISnsTopicResolver.md) to determine the SNS topic ARN for each event stream and dispatches the notices to the appropriate SNS topic in batches, using CancellationToken). Exceptions are caught and returned in the BatchIoNoticeDispatchResult. |
 | [GetSnsIo](SnsNoticeIo/GetSnsIo.md)() |  |
 
 ## Remarks

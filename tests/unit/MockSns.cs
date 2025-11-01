@@ -12,9 +12,11 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
 public class MockSns : IAmazonSimpleNotificationService
 {
+  private readonly ConcurrentBag<PublishBatchRequest> _capturedBatchRequests = [];
   private readonly ConcurrentBag<PublishRequest> _capturedRequests = [];
 
   public IEnumerable<PublishRequest> CapturedRequests => _capturedRequests;
+  public IEnumerable<PublishBatchRequest> CapturedBatchRequests => _capturedBatchRequests;
 
   void IDisposable.Dispose()
   {
@@ -57,6 +59,7 @@ public class MockSns : IAmazonSimpleNotificationService
     );
   }
 
+  /// <inheritdoc />
   Task<PublishResponse> IAmazonSimpleNotificationService.PublishAsync(
     string topicArn,
     string message,
@@ -76,10 +79,34 @@ public class MockSns : IAmazonSimpleNotificationService
     );
   }
 
+  /// <inheritdoc />
+  Task<PublishBatchResponse> IAmazonSimpleNotificationService.PublishBatchAsync(
+    PublishBatchRequest request,
+    CancellationToken cancellationToken)
+  {
+    _capturedBatchRequests.Add(request);
+
+    return Task.FromResult(
+      new PublishBatchResponse
+      {
+        Successful = request
+          .PublishBatchRequestEntries.Select(request => new PublishBatchResultEntry
+            {
+              Id = request.Id,
+              MessageId = Guid.NewGuid().ToString()
+            }
+          )
+          .ToList(),
+        HttpStatusCode = HttpStatusCode.OK
+      }
+    );
+  }
+
 
   public void ClearCapturedRequests()
   {
     _capturedRequests.Clear();
+    _capturedBatchRequests.Clear();
   }
 
   #region Stubs
@@ -403,13 +430,6 @@ public class MockSns : IAmazonSimpleNotificationService
 
   Task<OptInPhoneNumberResponse> IAmazonSimpleNotificationService.OptInPhoneNumberAsync(
     OptInPhoneNumberRequest request,
-    CancellationToken cancellationToken)
-  {
-    throw new NotImplementedException();
-  }
-
-  Task<PublishBatchResponse> IAmazonSimpleNotificationService.PublishBatchAsync(
-    PublishBatchRequest request,
     CancellationToken cancellationToken)
   {
     throw new NotImplementedException();

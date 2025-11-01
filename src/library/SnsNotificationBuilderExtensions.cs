@@ -176,7 +176,7 @@ public static class SnsNotificationBuilderExtensions
     );
 
     // We're declaring `ISnsNoticeIo` as the dispatcher, not the concrete `SnsNoticeIo`, because
-    // that is the service which was registered above.
+    // that is the service interface which was registered above.
     return builder.UseDispatcher<ISnsNoticeIo>(
       serviceProvider => serviceProvider.GetServiceOrThrowMissingDependency<ISnsNoticeIo>(),
       serviceLifetime
