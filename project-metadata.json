@@ -6,18 +6,65 @@
   "ciEnvironment": {
     "variables": [
       {
-        "name": "NUGET_API_KEY",
         "description": "NuGet API key",
+        "name": "NUGET_API_KEY",
         "required": true,
-        "secret": true,
-        "defaultValue": null
+        "secret": true
       },
       {
-        "name": "NUGET_SOURCE",
+        "defaultValue": "https://api.nuget.org/v3/index.json",
         "description": "NuGet Source (e.g., https://api.nuget.org/v3/index.json)",
+        "name": "NUGET_SOURCE",
         "required": true,
-        "secret": false,
-        "defaultValue": "https://api.nuget.org/v3/index.json"
+        "secret": false
+      },
+      {
+        "description": "AWS SNS Service URL used by integration tests",
+        "name": "TESTS__AWS__SNS__SERVICEURL",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "AWS SQS Service URL used by integration tests",
+        "name": "TESTS__AWS__SQS__SERVICEURL",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SQS queue URL for `errors`",
+        "name": "TESTS__QUEUES__ERRORS",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SQS queue URL for `high priority`",
+        "name": "TESTS__QUEUES__HIGHPRIORITY",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SQS queue URL for `primary`",
+        "name": "TESTS__QUEUES__PRIMARY",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SNS topic ARN for `errors`",
+        "name": "TESTS__TOPICS__ERRORS",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SNS topic ARN for `high priority`",
+        "name": "TESTS__TOPICS__HIGHPRIORITY",
+        "required": false,
+        "secret": false
+      },
+      {
+        "description": "Test SNS topic ARN for `primary`",
+        "name": "TESTS__TOPICS__PRIMARY",
+        "required": false,
+        "secret": false
       }
     ]
   }

@@ -1,18 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <RootNamespace>Jds.$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.20"/>
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.23" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.10.0"/>
-    <PackageReference Include="TUnit" Version="1.11.45" />
+    <PackageReference Include="TUnit" Version="1.12.3" />
   </ItemGroup>
 
   <ItemGroup>

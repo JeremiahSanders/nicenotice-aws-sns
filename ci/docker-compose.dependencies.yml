@@ -2,20 +2,19 @@
 # Project-specific CI environment dependencies
 ##
 
-# services:
-#
-#   pg:
-#     image: postgres:latest
-#     environment:
-#       - POSTGRES_DB=postgres
-#       - POSTGRES_USER=pgusr
-#       - POSTGRES_PASSWORD=pgpwd
-#     restart: always
-#
-#   pgplv8:
-#     image: clkao/postgres-plv8:12-2
-#     environment:
-#       - POSTGRES_DB=postgres
-#       - POSTGRES_USER=pgusr
-#       - POSTGRES_PASSWORD=pgpwd
-#     restart: always
+services:
+
+  localstack:
+    container_name: localstack-4
+    image: localstack/localstack:4
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=${DEBUG:-0}
+      - SERVICES=sns,sqs # AWS services to emulate
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack-init:/etc/localstack/init/ready.d"  # Mount init scripts
+      - "/var/run/docker.sock:/var/run/docker.sock"
