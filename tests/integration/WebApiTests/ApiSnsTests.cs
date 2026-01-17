@@ -40,7 +40,7 @@ public class ApiSnsTests
       .That(options.Value.Default)
       .IsNotNullOrEmpty();
     await Assert
-      .That(options.Value.Streams)
+      .That((IEnumerable<KeyValuePair<string, string>>)options.Value.Streams)
       .IsNotEmpty();
   }
 

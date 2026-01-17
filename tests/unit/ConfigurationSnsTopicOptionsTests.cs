@@ -10,7 +10,7 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
 public class ConfigurationSnsTopicOptionsTests
 {
-  [Fact]
+  [Test]
   public void ISnsTopicOptions_Map_ReturnsStreams()
   {
     string defaultTopic = Randomizer.Shared.AwsSnsArn();
@@ -38,7 +38,7 @@ public class ConfigurationSnsTopicOptionsTests
     actual.ShouldBe(streams);
   }
 
-  [Fact]
+  [Test]
   public void WhenResolvedFromOptions_ReturnsExpectedConfiguration()
   {
     const string configSectionBase = "MyApp:SnsTopicOptions";

@@ -8,7 +8,7 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
 public class ConfigurationSnsTopicResolverTests
 {
-  [Fact]
+  [Test]
   public void ThrowsWhenNoDefaultTopicIsConfiguredAndCannotResolveTopic()
   {
     var sourceOptions = new ConfigurationSnsTopicOptions();
@@ -20,7 +20,7 @@ public class ConfigurationSnsTopicResolverTests
     action.ShouldThrow<SnsStreamRoutingException>();
   }
 
-  [Fact]
+  [Test]
   public void CorrectlyRoutesToDefaultTopic()
   {
     var sourceOptions = new ConfigurationSnsTopicOptions
@@ -47,7 +47,7 @@ public class ConfigurationSnsTopicResolverTests
       .ShouldBe(sourceOptions.Default);
   }
 
-  [Fact]
+  [Test]
   public void CorrectlyRoutesToConfiguredTopics()
   {
     var sourceOptions = new ConfigurationSnsTopicOptions

@@ -19,7 +19,7 @@ public class SnsTests
   /// <summary>
   ///   This test verifies that our <see cref="MockSns" /> captures messages as expected.
   /// </summary>
-  [Fact]
+  [Test]
   public async Task Sanity_CanSendSns()
   {
     string topicArn = "arn:aws:sns:us-east-1:123456789012:test-topic";
@@ -83,7 +83,7 @@ public class SnsTests
   /// <summary>
   ///   This test verifies that
   /// </summary>
-  [Fact]
+  [Test]
   public async Task CanArrangeAwsIo()
   {
     string defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";

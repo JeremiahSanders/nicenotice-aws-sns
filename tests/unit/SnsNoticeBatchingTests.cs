@@ -1,6 +1,5 @@
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
 using Jds.TestingUtils.Randomization;
-using Jds.TestingUtils.Xunit2.Extras;
 
 using Shouldly;
 
@@ -10,51 +9,61 @@ public class SnsNoticeBatchingTests
 {
   public class BatchNoticesTests
   {
-    public class GroupingTests : RandomBatchesArrangement
+    public class VerifyGrouping
     {
-      [Fact]
+      [ClassDataSource<GroupingArrangement>(Shared = SharedType.PerTestSession)]
+      public required GroupingArrangement Arrangement { get; init; }
+
+      [Test]
       public void ReturnsNoErrors()
       {
-        ActResult.Errors.ShouldBeEmpty();
+        Arrangement.ActResult.Errors.ShouldBeEmpty();
       }
 
-      [Fact]
+      [Test]
       public void HaveExpectedTopicArns()
       {
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
-          snsNoticeBatch.TopicArn == $"{BaseTopic}{snsNoticeBatch.Notices[0].Stream}"
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+          snsNoticeBatch.TopicArn == $"{Arrangement.BaseTopic}{snsNoticeBatch.Notices[0].Stream}"
         );
       }
 
-      [Fact]
+      [Test]
       public void HaveNoMoreThan10EntriesPerBatch()
       {
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.Count <= 10
         );
       }
 
-      [Fact]
+      [Test]
       public void HaveNoMoreThanMaximumBytesPerBatch()
       {
         const int maximumBytes = SnsNoticeBatching.MaximumBytes;
 
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.Sum(notice => SnsNoticeBatching.GetByteCount(notice.Notice)) <= maximumBytes
         );
       }
     }
 
-    public class GivenExtremelyLargeEvents : RandomBatchesArrangement
+    public class GroupingArrangement : RandomBatchesArrangement
     {
+    }
+
+    public class GivenExtremelyLargeEvents
+    {
+      [ClassDataSource<ExtremelyLargeEventsArrangement>(Shared = SharedType.PerTestSession)]
+      public required ExtremelyLargeEventsArrangement Arrangement { get; init; }
+
       /// <summary>
       ///   Verifies that since we're dispatching events within 90% of the maximum bytes,
       ///   we can only fit one event per batch.
       /// </summary>
-      [Fact]
+      [Test]
       public void HaveNoMoreThan1EntryPerBatch()
       {
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.Count <= 1
         );
       }
@@ -63,44 +72,47 @@ public class SnsNoticeBatchingTests
       ///   This is a logical peer of <see cref="HaveNoMoreThan1EntryPerBatch" />,
       ///   but viewed from the batch count, rather than contents of each batch.
       /// </summary>
-      [Fact]
+      [Test]
       public void ReturnsOneBatchPerEvent()
       {
-        ActResult.BatchedNotices.Count.ShouldBe(RequestNotices.Count);
+        Arrangement.ActResult.BatchedNotices.Count.ShouldBe(Arrangement.RequestNotices.Count);
       }
 
-      [Fact]
+      [Test]
       public void ReturnsNoErrors()
       {
-        ActResult.Errors.ShouldBeEmpty();
+        Arrangement.ActResult.Errors.ShouldBeEmpty();
       }
 
-      [Fact]
+      [Test]
       public void HaveNoMoreThanMaximumBytesPerBatch()
       {
         const int maximumBytes = SnsNoticeBatching.MaximumBytes;
 
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.Sum(notice => SnsNoticeBatching.GetByteCount(notice.Notice)) <= maximumBytes
         );
       }
 
-      [Fact]
+      [Test]
       public void Sanity_EventsAreWithin90PercentOfMaximumBytes()
       {
         const int maximumBytes = SnsNoticeBatching.MaximumBytes;
-        int requiredBytes = (int)Math.Floor(maximumBytes * 0.9);
+        var requiredBytes = (int)Math.Floor(maximumBytes * 0.9);
 
-        ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
+        Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.All(notice => SnsNoticeBatching.GetByteCount(notice.Notice) >= requiredBytes)
         );
       }
+    }
 
+    public class ExtremelyLargeEventsArrangement : RandomBatchesArrangement
+    {
       protected override ExampleBaseEnterpriseEvent CreateEnterpriseEvent(int index)
       {
         // ASCII characters are 1 byte each, so if we create a string using only ASCII then
         //   we can predict the byte count of the string.
-        int desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 0.9);
+        var desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 0.9);
         string asciiString = Randomizer.Shared.RandomStringLatin(desiredBytes);
 
         return new ExampleLoginEvent
@@ -110,7 +122,7 @@ public class SnsNoticeBatchingTests
       }
     }
 
-    public class RandomBatchesArrangement : BaseCaseFixture
+    public abstract class RandomBatchesArrangement : BaseCaseArrangement
     {
       public string BaseTopic { get; } = Randomizer.Shared.AwsSnsArn();
       public List<BatchedIoRequestNotice> Notices { get; private set; } = [];
