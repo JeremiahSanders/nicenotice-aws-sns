@@ -25,7 +25,7 @@ function ci-compose() {
 
     local outputPath="${BUILD_DOCS}/md"
     dotnet tool restore &&
-    dotnet xmldocmd "${sourcePath}" "${outputPath}" \
+    dotnet run --project "${PROJECT_ROOT}/ci/markdown-generator" "${sourcePath}" "${outputPath}" \
       --namespace "Jds.NiceNotice.Aws.Sns" \
       --source "https://github.com/JeremiahSanders/nicenotice-aws-sns/tree/main/src/library" \
       --newline lf \

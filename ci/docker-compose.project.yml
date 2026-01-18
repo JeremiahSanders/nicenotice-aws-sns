@@ -37,5 +37,9 @@ services:
         target: /code/tests/example-webapi/bin
       - type: volume
         target: /code/tests/example-webapi/obj
+      - type: volume
+        target: /code/ci/markdown-generator/bin
+      - type: volume
+        target: /code/ci/markdown-generator/obj
     # NOTE: Root user specified below helps address permissions errors when using the default CICEE Dockerfile.
     user: root

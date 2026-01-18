@@ -3,7 +3,6 @@ using Amazon.SimpleNotificationService.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
 using Jds.TestingUtils.Randomization;
-using Jds.TestingUtils.Xunit2.Extras;
 
 using Shouldly;
 
@@ -11,46 +10,54 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
 public class SnsNoticeIoTests
 {
-  public class GivenTooLargeEvents : PublishBatchArrangement
+  public class GivenTooLargeEvents
   {
-    [Fact]
+    [ClassDataSource<TooLargeEventsArrangement>(Shared = SharedType.PerTestSession)]
+    public required TooLargeEventsArrangement Arrangement { get; init; }
+
+    [Test]
     public void DoesNotDispatchAnyBatches()
     {
-      MockSns.CapturedBatchRequests.ShouldBeEmpty();
+      Arrangement.MockSns.CapturedBatchRequests.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void ShouldReturnFailures()
     {
-      ActResponse.Failures.Count.ShouldBe(Notices.Count);
+      Arrangement.ActResponse.Failures.Count.ShouldBe(Arrangement.Notices.Count);
     }
 
-    [Fact]
+    [Test]
     public void AllNoticesShouldBeReturnedAsFailures()
     {
-      Notices.ShouldAllBe(expected => ActResponse.Failures.Any(failure => failure.Item1.BatchNoticeId == expected.Key));
+      Arrangement.Notices.ShouldAllBe(expected =>
+        Arrangement.ActResponse.Failures.Any(failure => failure.Item1.BatchNoticeId == expected.Key)
+      );
     }
 
-    [Fact]
+    [Test]
     public void FailuresShouldAllBeSnsIoExceptions()
     {
-      ActResponse.Failures.ShouldAllBe(failure =>
+      Arrangement.ActResponse.Failures.ShouldAllBe(failure =>
         failure.Item2.GetType() == typeof(SnsIoException) &&
         failure.Item2.Message.StartsWith("Notice is too large.")
       );
     }
 
-    [Fact]
+    [Test]
     public void ShouldReturnNoSuccesses()
     {
-      ActResponse.Successes.ShouldBeEmpty();
+      Arrangement.ActResponse.Successes.ShouldBeEmpty();
     }
+  }
 
+  public class TooLargeEventsArrangement : PublishBatchArrangement
+  {
     protected override ExampleBaseEnterpriseEvent CreateEnterpriseEvent(int index)
     {
       // ASCII characters are 1 byte each, so if we create a string using only ASCII then
       //   we can predict the byte count of the string.
-      int desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 1.1);
+      var desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 1.1);
       string asciiString = Randomizer.Shared.RandomStringLatin(desiredBytes);
 
       return new ExampleLoginEvent
@@ -60,76 +67,86 @@ public class SnsNoticeIoTests
     }
   }
 
-  public class GivenExtremelyLargeEvents : PublishBatchArrangement
+  public class GivenExtremelyLargeEvents
   {
+    [ClassDataSource<ExtremelyLargeEventsArrangement>(Shared = SharedType.PerTestSession)]
+    public required ExtremelyLargeEventsArrangement Arrangement { get; init; }
+
     /// <summary>
     ///   This is a logical peer of <see cref="HaveNoMoreThan1EntryPerBatch" />,
     ///   but viewed from the batch count, rather than contents of each batch.
     /// </summary>
-    [Fact]
+    [Test]
     public void DispatchesOneBatchPerEvent()
     {
-      MockSns.CapturedBatchRequests.Count().ShouldBe(Notices.Count);
+      Arrangement.MockSns.CapturedBatchRequests.Count().ShouldBe(Arrangement.Notices.Count);
     }
 
     /// <summary>
     ///   Verifies that since we're dispatching events within 90% of the maximum bytes,
     ///   we can only fit one event per batch.
     /// </summary>
-    [Fact]
+    [Test]
     public void HaveNoMoreThan1EntryPerBatch()
     {
-      MockSns.CapturedBatchRequests.ShouldAllBe(batch => batch.PublishBatchRequestEntries.Count == 1);
+      Arrangement.MockSns.CapturedBatchRequests.ShouldAllBe(batch => batch.PublishBatchRequestEntries.Count == 1);
     }
 
-    [Fact]
+    [Test]
     public void Sanity_EventsAreWithin90PercentOfMaximumBytes()
     {
       const int maximumBytes = SnsNoticeBatching.MaximumBytes;
-      int requiredBytes = (int)Math.Floor(maximumBytes * 0.9);
+      var requiredBytes = (int)Math.Floor(maximumBytes * 0.9);
 
-      ActResponse.Successes.ShouldAllBe(notice => SnsNoticeBatching.GetByteCount(notice.Notice) >= requiredBytes);
+      Arrangement.ActResponse.Successes.ShouldAllBe(notice =>
+        SnsNoticeBatching.GetByteCount(notice.Notice) >= requiredBytes
+      );
     }
 
-    [Fact]
+    [Test]
     public void ShouldReturnNoFailures()
     {
-      ActResponse.Failures.ShouldBeEmpty();
+      Arrangement.ActResponse.Failures.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void DispatchesNoticesUsingBatchIo()
     {
-      List<PublishBatchRequest> actualBatchRequests = MockSns.CapturedBatchRequests.ToList();
+      List<PublishBatchRequest> actualBatchRequests = Arrangement.MockSns.CapturedBatchRequests.ToList();
 
-      int minimumBatches = Notices.Count / SnsNoticeBatching.MaxMessagesPerBatch;
+      int minimumBatches = Arrangement.Notices.Count / SnsNoticeBatching.MaxMessagesPerBatch;
       actualBatchRequests.Count.ShouldBeGreaterThanOrEqualTo(minimumBatches);
     }
 
-    [Fact]
+    [Test]
     public void DispatchesExpectedMessages()
     {
       List<PublishBatchRequestEntry> actualBatchRequests =
-        MockSns.CapturedBatchRequests.SelectMany(batch => batch.PublishBatchRequestEntries).ToList();
+        Arrangement.MockSns.CapturedBatchRequests.SelectMany(batch => batch.PublishBatchRequestEntries).ToList();
 
 
-      Notices.ShouldAllBe(kvp =>
+      Arrangement.Notices.ShouldAllBe(kvp =>
         actualBatchRequests.Any(entry => entry.Id == kvp.Key && entry.Message == kvp.Value.Notice)
       );
     }
 
-    [Fact]
+    [Test]
     public void ShouldReturnAllSuccesses()
     {
-      ActResponse.Successes.Count.ShouldBe(Notices.Count);
-      Notices.ShouldAllBe(expected => ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key));
+      Arrangement.ActResponse.Successes.Count.ShouldBe(Arrangement.Notices.Count);
+      Arrangement.Notices.ShouldAllBe(expected =>
+        Arrangement.ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key)
+      );
     }
+  }
 
+  public class ExtremelyLargeEventsArrangement : PublishBatchArrangement
+  {
     protected override ExampleBaseEnterpriseEvent CreateEnterpriseEvent(int index)
     {
       // ASCII characters are 1 byte each, so if we create a string using only ASCII then
       //   we can predict the byte count of the string.
-      int desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 0.9);
+      var desiredBytes = (int)Math.Floor(SnsNoticeBatching.MaximumBytes * 0.9);
       string asciiString = Randomizer.Shared.RandomStringLatin(desiredBytes);
 
       return new ExampleLoginEvent
@@ -139,44 +156,53 @@ public class SnsNoticeIoTests
     }
   }
 
-  public class GivenSingleTopic : PublishBatchArrangement
+  public class GivenSingleTopic
   {
-    [Fact]
+    [ClassDataSource<SingleTopicArrangement>(Shared = SharedType.PerTestSession)]
+    public required SingleTopicArrangement Arrangement { get; init; }
+
+    [Test]
     public void ShouldReturnNoFailures()
     {
-      ActResponse.Failures.ShouldBeEmpty();
+      Arrangement.ActResponse.Failures.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void DispatchesNoticesUsingBatchIo()
     {
-      List<PublishBatchRequest> actualBatchRequests = MockSns.CapturedBatchRequests.ToList();
+      List<PublishBatchRequest> actualBatchRequests = Arrangement.MockSns.CapturedBatchRequests.ToList();
 
-      int minimumBatches = Notices.Count / SnsNoticeBatching.MaxMessagesPerBatch;
+      int minimumBatches = Arrangement.Notices.Count / SnsNoticeBatching.MaxMessagesPerBatch;
       actualBatchRequests.Count.ShouldBeGreaterThanOrEqualTo(minimumBatches);
     }
 
-    [Fact]
+    [Test]
     public void DispatchesExpectedMessages()
     {
       List<PublishBatchRequestEntry> actualBatchRequests =
-        MockSns.CapturedBatchRequests.SelectMany(batch => batch.PublishBatchRequestEntries).ToList();
+        Arrangement.MockSns.CapturedBatchRequests.SelectMany(batch => batch.PublishBatchRequestEntries).ToList();
 
 
-      Notices.ShouldAllBe(kvp =>
+      Arrangement.Notices.ShouldAllBe(kvp =>
         actualBatchRequests.Any(entry => entry.Id == kvp.Key && entry.Message == kvp.Value.Notice)
       );
     }
 
-    [Fact]
+    [Test]
     public void ShouldReturnAllSuccesses()
     {
-      ActResponse.Successes.Count.ShouldBe(Notices.Count);
-      Notices.ShouldAllBe(expected => ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key));
+      Arrangement.ActResponse.Successes.Count.ShouldBe(Arrangement.Notices.Count);
+      Arrangement.Notices.ShouldAllBe(expected =>
+        Arrangement.ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key)
+      );
     }
   }
 
-  public class PublishBatchArrangement : BaseCaseFixture
+  public class SingleTopicArrangement : PublishBatchArrangement
+  {
+  }
+
+  public abstract class PublishBatchArrangement : BaseCaseArrangement
   {
     protected PublishBatchArrangement(ISnsTopicResolver? topicResolver = null)
     {
@@ -188,6 +214,11 @@ public class SnsNoticeIoTests
 
       Notices = new Dictionary<string, BatchedIoRequestNotice>();
       Streams = [];
+      ActResponse = new BatchIoNoticeDispatchResult
+      {
+        Failures = [],
+        Successes = []
+      };
     }
 
     protected ISnsNoticeIo Sut { get; }

@@ -483,3 +483,8 @@ NuGet.Config
 # Project development executables
 !bin/
 ci/env.local.sh
+# Local configuration
+tests/integration/appsettings.local.json
+# Documentation Generation artifacts
+ci/markdown-generator/bin/
+ci/markdown-generator/obj/
