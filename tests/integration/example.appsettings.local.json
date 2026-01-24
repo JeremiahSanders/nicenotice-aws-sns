@@ -1,0 +1,22 @@
+{
+  "Tests": {
+    "AWS": {
+      "SNS": {
+        "ServiceURL": "http://localhost.localstack.cloud:4566"
+      },
+      "SQS": {
+        "ServiceURL": "http://localhost.localstack.cloud:4566"
+      }
+    },
+    "Topics": {
+      "Primary": "arn:aws:sns:us-east-1:000000000000:primary-message-stream",
+      "HighPriority": "arn:aws:sns:us-east-1:000000000000:high-priority-message-stream",
+      "Errors": "arn:aws:sns:us-east-1:000000000000:error-stream"
+    },
+    "Queues": {
+      "Primary": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/primary-queue",
+      "HighPriority": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/high-priority-queue",
+      "Errors": "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/error-queue"
+    }
+  }
+}
