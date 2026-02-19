@@ -2,6 +2,8 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
+using Jds.NiceNotice.Dispatching;
+using Jds.NiceNotice.TypedNotices.Serialization;
 using Jds.TestingUtils.Randomization;
 
 using Shouldly;

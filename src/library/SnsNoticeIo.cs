@@ -3,6 +3,8 @@
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
+using Jds.NiceNotice.Dispatching;
+
 namespace Jds.NiceNotice.Aws.Sns;
 
 /// <summary>

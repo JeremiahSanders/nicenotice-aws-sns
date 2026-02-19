@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 using Jds.NiceNotice;
+using Jds.NiceNotice.TypedNotices;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,7 @@
 using Amazon.SimpleNotificationService;
 
+using Jds.NiceNotice.Configuration;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -110,7 +112,7 @@ public static class SnsNotificationBuilderExtensions
     ServiceLifetime serviceLifetime
   )
   {
-    ArgumentException.ThrowIfNullOrWhiteSpace(configurationSectionPath, nameof(configurationSectionPath));
+    ArgumentException.ThrowIfNullOrWhiteSpace(configurationSectionPath);
 
     builder
       .Services.AddOptions<ConfigurationSnsTopicOptions>()

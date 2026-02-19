@@ -1,5 +1,7 @@
 using Amazon.SimpleNotificationService.Model;
 
+using Jds.NiceNotice.Dispatching;
+
 namespace Jds.NiceNotice.Aws.Sns;
 
 internal class SnsNoticeBatch
