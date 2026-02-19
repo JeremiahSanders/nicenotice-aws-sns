@@ -17,6 +17,10 @@ public static NiceNoticeBuilder DispatchToSns(this NiceNoticeBuilder builder,
 | topicOptions | Topic routing configuration. |
 | serviceLifetime | The service lifetime for the registered components. |
 
+## Remarks
+
+Registers [`SnsNoticeIo`](../SnsNoticeIo.md) as [`ISnsNoticeIo`](../ISnsNoticeIo.md), as INoticeIo, and as INoticeBatchIo in the Services service collection.
+
 ## See Also
 
 * interface [ISnsTopicOptions](../ISnsTopicOptions.md)
@@ -52,6 +56,12 @@ The configured NiceNoticeBuilder instance.
 | --- | --- |
 | ArgumentException | Thrown if *configurationSectionPath* is null or whitespace. |
 
+## Remarks
+
+Registers [`SnsNoticeIo`](../SnsNoticeIo.md) as [`ISnsNoticeIo`](../ISnsNoticeIo.md), as INoticeIo, and as INoticeBatchIo in the Services service collection.
+
+Registers IOptions services for [`ConfigurationSnsTopicOptions`](../ConfigurationSnsTopicOptions.md). Binds its configuration to the values specified in the *configurationSectionPath* configuration section.
+
 ## See Also
 
 * class [SnsNotificationBuilderExtensions](../SnsNotificationBuilderExtensions.md)
@@ -77,7 +87,11 @@ public static NiceNoticeBuilder DispatchToSns(this NiceNoticeBuilder builder,
 | builder | The NiceNoticeBuilder instance to configure. |
 | snsIoProvider |  |
 | topicResolverProvider |  |
-| serviceLifetime | The service lifetime for the registered components. |
+| serviceLifetime | The service lifetime for the registered services. |
+
+## Remarks
+
+Registers [`SnsNoticeIo`](../SnsNoticeIo.md) as [`ISnsNoticeIo`](../ISnsNoticeIo.md), as INoticeIo, and as INoticeBatchIo in the Services service collection.
 
 ## See Also
 

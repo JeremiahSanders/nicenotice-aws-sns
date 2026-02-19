@@ -33,6 +33,12 @@ public static class SnsNotificationBuilderExtensions
   ///     configuration API).
   ///   </para>
   /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     Registers <see cref="SnsNoticeIo" /> as <see cref="ISnsNoticeIo" />, as <see cref="INoticeIo" />, and as
+  ///     <see cref="INoticeBatchIo" /> in the <see cref="NiceNoticeBuilder.Services" /> service collection.
+  ///   </para>
+  /// </remarks>
   /// <param name="builder">The NiceNoticeBuilder instance to configure.</param>
   /// <param name="topicOptions">
   ///   <para>Topic routing configuration.</para>
@@ -85,6 +91,17 @@ public static class SnsNotificationBuilderExtensions
   ///     dependencies for SNS dispatching, and registers them using the desired service lifetime.
   ///   </para>
   /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     Registers <see cref="SnsNoticeIo" /> as <see cref="ISnsNoticeIo" />, as <see cref="INoticeIo" />, and as
+  ///     <see cref="INoticeBatchIo" /> in the <see cref="NiceNoticeBuilder.Services" /> service collection.
+  ///   </para>
+  ///   <para>
+  ///     Registers <see cref="IOptions{TOptions}" /> services for <see cref="ConfigurationSnsTopicOptions" />.
+  ///     Binds its configuration to the values specified in the <paramref name="configurationSectionPath" />
+  ///     configuration section.
+  ///   </para>
+  /// </remarks>
   /// <param name="builder">The NiceNoticeBuilder instance to configure.</param>
   /// <param name="configurationSectionPath">
   ///   The configuration section path from which to bind SNS topic options.
@@ -127,7 +144,11 @@ public static class SnsNotificationBuilderExtensions
 
     return builder.DispatchToSns(
       static provider =>
-        MissingDependencyException.ThrowIfNull(provider.GetService<IAmazonSimpleNotificationService>()),
+        MissingDependencyException.ThrowIfNull(
+          // Try to resolve the SNS abstraction; if it's not registered, fall back to the concrete client.
+          provider.GetService<IAmazonSimpleNotificationService>()
+          ?? provider.GetService<AmazonSimpleNotificationServiceClient>()
+        ),
       static provider => provider.GetServiceOrThrowMissingDependency<ISnsTopicResolver>(),
       serviceLifetime
     );
@@ -146,11 +167,17 @@ public static class SnsNotificationBuilderExtensions
   ///     These dependencies are used to construct the implementation, <see cref="SnsNoticeIo" />.
   ///   </para>
   /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     Registers <see cref="SnsNoticeIo" /> as <see cref="ISnsNoticeIo" />, as <see cref="INoticeIo" />, and as
+  ///     <see cref="INoticeBatchIo" /> in the <see cref="NiceNoticeBuilder.Services" /> service collection.
+  ///   </para>
+  /// </remarks>
   /// <param name="builder">The NiceNoticeBuilder instance to configure.</param>
   /// <param name="snsIoProvider"></param>
   /// <param name="topicResolverProvider"></param>
   /// <param name="serviceLifetime">
-  ///   <para>The service lifetime for the registered components.</para>
+  ///   <para>The service lifetime for the registered services.</para>
   ///   <para>
   ///     Be mindful of
   ///     <a
@@ -169,18 +196,26 @@ public static class SnsNotificationBuilderExtensions
     ServiceLifetime serviceLifetime
   )
   {
+    // Register SnsNoticeIo as itself, for direct resolution.
     builder.Services.Add(
       new ServiceDescriptor(
-        typeof(ISnsNoticeIo),
+        typeof(SnsNoticeIo),
         serviceProvider => new SnsNoticeIo(snsIoProvider(serviceProvider), topicResolverProvider(serviceProvider)),
         serviceLifetime
       )
     );
 
-    // We're declaring `ISnsNoticeIo` as the dispatcher, not the concrete `SnsNoticeIo`, because
-    // that is the service interface which was registered above.
+    // Register SnsNoticeIo as ISnsNoticeIo, for use by normal expectations.
+    builder.Services.Add(
+      new ServiceDescriptor(
+        typeof(ISnsNoticeIo),
+        static serviceProvider => serviceProvider.GetServiceOrThrowMissingDependency<SnsNoticeIo>(),
+        serviceLifetime
+      )
+    );
+
     return builder.UseDispatcher<ISnsNoticeIo>(
-      serviceProvider => serviceProvider.GetServiceOrThrowMissingDependency<ISnsNoticeIo>(),
+      static serviceProvider => serviceProvider.GetServiceOrThrowMissingDependency<ISnsNoticeIo>(),
       serviceLifetime
     );
   }
