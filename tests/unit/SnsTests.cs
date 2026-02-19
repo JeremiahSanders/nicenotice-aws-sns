@@ -4,6 +4,8 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
+using Jds.NiceNotice.TypedNotices;
+using Jds.NiceNotice.TypedNotices.Routing;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,8 +24,8 @@ public class SnsTests
   [Test]
   public async Task Sanity_CanSendSns()
   {
-    string topicArn = "arn:aws:sns:us-east-1:123456789012:test-topic";
-    string message = "Hello World!";
+    var topicArn = "arn:aws:sns:us-east-1:123456789012:test-topic";
+    var message = "Hello World!";
 
     IServiceCollection services = CreateServices(topicArn);
 
@@ -86,13 +88,13 @@ public class SnsTests
   [Test]
   public async Task CanArrangeAwsIo()
   {
-    string defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
+    var defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
     IServiceCollection services = CreateServices(defaultTopic);
     ServiceProvider provider = services.BuildServiceProvider();
     var mockSns = provider.GetRequiredService<MockSns>();
 
     ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent> dispatch =
-      provider.GetEnterpriseEventDispatcher<ExampleBaseEnterpriseEvent>();
+      provider.GetRequiredService<ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent>>();
 
     ExampleLoginEvent exampleEvent = new()
     {

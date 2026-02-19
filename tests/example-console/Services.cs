@@ -1,5 +1,6 @@
 using Jds.NiceNotice;
 using Jds.NiceNotice.Aws.Sns;
+using Jds.NiceNotice.TypedNotices.Routing;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

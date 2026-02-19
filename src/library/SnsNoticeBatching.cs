@@ -1,5 +1,7 @@
 using System.Text;
 
+using Jds.NiceNotice.Dispatching;
+
 namespace Jds.NiceNotice.Aws.Sns;
 
 internal static class SnsNoticeBatching
@@ -123,7 +125,7 @@ internal static class SnsNoticeBatching
 
       // Now now handle the notices we might be able to batch
       List<List<BatchedIoResponseNotice>> resultGroups = [];
-      int currentByteSum = 0;
+      var currentByteSum = 0;
       List<BatchedIoResponseNotice> currentBatch = [];
 
       foreach (var noticeStatus in topicGrouping.notices.Where(noticeStatus => !noticeStatus.isTooLarge))

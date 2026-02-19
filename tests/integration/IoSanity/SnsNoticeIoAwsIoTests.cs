@@ -1,6 +1,9 @@
 using Amazon.SQS.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetails;
+using Jds.NiceNotice.Dispatching;
+using Jds.NiceNotice.TypedNotices;
+using Jds.NiceNotice.TypedNotices.Routing;
 using Jds.TestingUtils.Randomization;
 
 using NiceNotice.Tests.ExampleWebApi.Notices;
@@ -118,7 +121,9 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
 
     TypedNoticeDispatchResult<UserSessionStarted> soloDispatchResult = await dispatcher.DispatchAsync(soloEvent);
     BatchTypedNoticeDispatchResult batchDispatchResult =
-      await dispatcher.DispatchBatchAsync(DispatchBatchRequest<EnterpriseEvent>.Create([batchEvent1, batchEvent2]));
+      await dispatcher.DispatchBatchAsync(
+        DispatchBatchRequest<EnterpriseEvent>.CreateFromTypedNotices([batchEvent1, batchEvent2])
+      );
 
     // Obtain verification values
     List<Message> queueMessages = (await awsTestHarness.GetMessagesInQueueAsync(queue)).ToList();

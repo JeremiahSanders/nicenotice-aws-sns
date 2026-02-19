@@ -1,5 +1,7 @@
 using Jds.NiceNotice;
 using Jds.NiceNotice.Aws.Sns;
+using Jds.NiceNotice.TypedNotices.Routing;
+using Jds.NiceNotice.TypedNotices.Validation;
 
 using NiceNotice.Tests.ExampleWebApi;
 using NiceNotice.Tests.ExampleWebApi.Notices;
@@ -34,7 +36,7 @@ builder.Services.AddNiceNotice(niceNoticeBuilder => niceNoticeBuilder
        */
       typedNoticeBuilder
         .UseStreamSelector(
-          StreamSelectors.TypeMap<ExampleWebApiEventNotice>(
+          Routers.TypeMap<ExampleWebApiEventNotice>(
             defaultStream: EventStreams.Default,
             map: new Dictionary<Type, EventStreamId>
             {
