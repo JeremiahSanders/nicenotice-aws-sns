@@ -14,7 +14,7 @@
     <PackageId>NiceNotice.Aws.Sns</PackageId>
     <Authors>jds</Authors>
     <Company/>
-    <Copyright>Copyright (c) 2025 Jeremiah Sanders</Copyright>
+    <Copyright>Copyright (c) 2026 Jeremiah Sanders</Copyright>
     <Description>Notification dispatch I/O adapter for NiceNotice which sends messages to Amazon Web Services (AWS) Simple Notification Service (SNS).</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -36,7 +36,7 @@
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
-    <PackageReference Include="NiceNotice" Version="0.1.0-build-20260219-001817-sha-5f88456" />
+    <PackageReference Include="NiceNotice" Version="0.1.0-build-20260222-200524-sha-0e3e345" />
   </ItemGroup>
 
   <ItemGroup>
