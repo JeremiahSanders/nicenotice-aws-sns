@@ -1,6 +1,5 @@
 using Jds.NiceNotice;
 using Jds.NiceNotice.Aws.Sns;
-using Jds.NiceNotice.TypedNotices.Routing;
 using Jds.NiceNotice.TypedNotices.Validation;
 
 using NiceNotice.Tests.ExampleWebApi;
@@ -24,35 +23,15 @@ builder
  *****/
 builder.Services.AddNiceNotice(niceNoticeBuilder => niceNoticeBuilder
   // Enable typed enterprise events.
+  //   We're providing a custom base notice type, ExampleWebApiEventNotice.
+  //   Additionally, we're configuring NiceNotice to validate notices using .NET component model data annotations.
   .UseTypedNotices<ExampleWebApiEventNotice>(
     typedNoticeBuilder =>
-      /* Configure two streams: a default (for most events) and a second stream for user session events.
-       *
-       *   Microservices and similarly narrowly scoped applications may prefer to use a single stream for all events.
-       *   However, applications which offer multiple REST endpoints
-       *     or which have multiple subdomains or categories of events may benefit from using multiple streams.
-       *
-       *   Remember: Stream identities support logical routing; they are not direct representations of I/O streams.
-       */
-      typedNoticeBuilder
-        .UseStreamSelector(
-          Routers.TypeMap<ExampleWebApiEventNotice>(
-            defaultStream: EventStreams.Default,
-            map: new Dictionary<Type, EventStreamId>
-            {
-              {
-                typeof(UserSessionEnded), EventStreams.UserSessions
-              },
-              {
-                typeof(UserSessionStarted), EventStreams.UserSessions
-              }
-            }
-          )
-        )
-        .ValidateWithDataAnnotations(),
+      typedNoticeBuilder.ValidateWithDataAnnotations(),
     ServiceLifetime.Singleton
   )
   // Dispatch enterprise events to Amazon Web Services SNS.
+  //   The `sns:topics` configuration section path is used to resolve the SNS topic ARNs.
   .DispatchToSns(
     configurationSectionPath: "sns:topics",
     ServiceLifetime.Singleton
