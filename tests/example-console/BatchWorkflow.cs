@@ -144,6 +144,30 @@ public class BatchWorkflow(
     }
   }
 
+  private List<string[]> GenerateOutputCsvLines(Dictionary<string, List<string>> parsedData)
+  {
+    // Simulate some translation logic, converting the parsed data into a predefined CSV format.
+    // This implementation is not intended to do anything useful.
+    IEnumerable<string[]> header =
+    [
+      [
+        "id",
+        "data-count"
+      ]
+    ];
+
+    IEnumerable<string[]> allLines = header.Concat(
+      parsedData.Select(kvp => new[]
+        {
+          kvp.Key,
+          kvp.Value.Count.ToString()
+        }
+      )
+    );
+
+    return allLines.ToList();
+  }
+
   /// <summary>
   ///   Provides a uniform way to handle workflow failures.
   /// </summary>
@@ -183,37 +207,18 @@ public class BatchWorkflow(
     return BatchWorkflowResult.Failure(exception, request.Output.AwsS3OutputPath, duration);
   }
 
-  private async Task SaveCsvToAwsS3Async(
-    List<string[]> outputCsvLines,
-    BatchWorkflowRequest.OutputDestination outputDestination
-  )
+  private async Task<string> LoadInputDataAsync(Uri requestInputFile)
   {
-    // Simulate an I/O delay while writing the output file.
+    // Simulate an I/O delay while reading the input file.
     await Task.Delay(TimeSpan.FromMilliseconds(value: 1));
-  }
 
-  private List<string[]> GenerateOutputCsvLines(Dictionary<string, List<string>> parsedData)
-  {
-    // Simulate some translation logic, converting the parsed data into a predefined CSV format.
-    // This implementation is not intended to do anything useful.
-    IEnumerable<string[]> header =
-    [
-      [
-        "id",
-        "data-count"
-      ]
-    ];
-
-    IEnumerable<string[]> allLines = header.Concat(
-      parsedData.Select(kvp => new[]
-        {
-          kvp.Key,
-          kvp.Value.Count.ToString()
-        }
-      )
+    // Generate some random data to simulate some data being loaded from a web page, file, or database.
+    return string.Join(
+      separator: "\n",
+      Enumerable
+        .Range(start: 0, Random.Shared.Next(minValue: 14, maxValue: 91))
+        .Select(_ => Guid.NewGuid())
     );
-
-    return allLines.ToList();
   }
 
   private Dictionary<string, List<string>> ParseData(string inputData)
@@ -251,17 +256,12 @@ public class BatchWorkflow(
       .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
   }
 
-  private async Task<string> LoadInputDataAsync(Uri requestInputFile)
+  private async Task SaveCsvToAwsS3Async(
+    List<string[]> outputCsvLines,
+    BatchWorkflowRequest.OutputDestination outputDestination
+  )
   {
-    // Simulate an I/O delay while reading the input file.
+    // Simulate an I/O delay while writing the output file.
     await Task.Delay(TimeSpan.FromMilliseconds(value: 1));
-
-    // Generate some random data to simulate some data being loaded from a web page, file, or database.
-    return string.Join(
-      separator: "\n",
-      Enumerable
-        .Range(start: 0, Random.Shared.Next(minValue: 14, maxValue: 91))
-        .Select(_ => Guid.NewGuid())
-    );
   }
 }

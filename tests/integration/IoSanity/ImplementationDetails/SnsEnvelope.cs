@@ -10,13 +10,12 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetail
 /// </remarks>
 public class SnsEnvelope
 {
-  public string? Type { get; set; }
+  public string? Message { get; set; }
+
+  public Dictionary<string, object>? MessageAttributes { get; set; }
 
   public string? MessageId { get; set; }
 
   public string? TopicArn { get; set; }
-
-  public string? Message { get; set; }
-
-  public Dictionary<string, object>? MessageAttributes { get; set; }
+  public string? Type { get; set; }
 }

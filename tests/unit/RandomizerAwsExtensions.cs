@@ -7,13 +7,6 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 /// </summary>
 public static class RandomizerAwsExtensions
 {
-  private static readonly string[] Regions =
-  [
-    "eu-west-1",
-    "us-east-1",
-    "ap-southeast-2"
-  ];
-
   private static readonly char[] Numbers =
   [
     '0',
@@ -26,6 +19,13 @@ public static class RandomizerAwsExtensions
     '7',
     '8',
     '9'
+  ];
+
+  private static readonly string[] Regions =
+  [
+    "eu-west-1",
+    "us-east-1",
+    "ap-southeast-2"
   ];
 
   public static string AwsAccount(this IRandomizationSource randomizationSource)

@@ -19,6 +19,35 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 public class SnsTests
 {
   /// <summary>
+  ///   This test verifies that
+  /// </summary>
+  [Test]
+  public async Task CanArrangeAwsIo()
+  {
+    var defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
+    IServiceCollection services = CreateServices(defaultTopic);
+    ServiceProvider provider = services.BuildServiceProvider();
+    var mockSns = provider.GetRequiredService<MockSns>();
+
+    ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent> dispatch =
+      provider.GetRequiredService<ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent>>();
+
+    ExampleLoginEvent exampleEvent = new()
+    {
+      Username = "user",
+      Name = "Bobby"
+    };
+    TypedNoticeDispatchResult<ExampleLoginEvent> result = await dispatch.DispatchAsync(exampleEvent);
+
+    mockSns.CapturedRequests.ShouldContain(item => !string.IsNullOrWhiteSpace(item.TopicArn) &&
+                                                   item.Message == JsonSerializer.Serialize(
+                                                     exampleEvent,
+                                                     JsonDefaults.DefaultJsonSerializerOptions
+                                                   )
+    );
+  }
+
+  /// <summary>
   ///   This test verifies that our <see cref="MockSns" /> captures messages as expected.
   /// </summary>
   [Test]
@@ -80,34 +109,5 @@ public class SnsTests
     );
 
     return services;
-  }
-
-  /// <summary>
-  ///   This test verifies that
-  /// </summary>
-  [Test]
-  public async Task CanArrangeAwsIo()
-  {
-    var defaultTopic = "arn:aws:sns:us-east-1:123456789012:test-topic";
-    IServiceCollection services = CreateServices(defaultTopic);
-    ServiceProvider provider = services.BuildServiceProvider();
-    var mockSns = provider.GetRequiredService<MockSns>();
-
-    ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent> dispatch =
-      provider.GetRequiredService<ITypedNoticeDispatcher<ExampleBaseEnterpriseEvent>>();
-
-    ExampleLoginEvent exampleEvent = new()
-    {
-      Username = "user",
-      Name = "Bobby"
-    };
-    TypedNoticeDispatchResult<ExampleLoginEvent> result = await dispatch.DispatchAsync(exampleEvent);
-
-    mockSns.CapturedRequests.ShouldContain(item => !string.IsNullOrWhiteSpace(item.TopicArn) &&
-                                                   item.Message == JsonSerializer.Serialize(
-                                                     exampleEvent,
-                                                     JsonDefaults.DefaultJsonSerializerOptions
-                                                   )
-    );
   }
 }

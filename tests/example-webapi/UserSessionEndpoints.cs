@@ -1,3 +1,8 @@
+using System.Linq;
+using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace NiceNotice.Tests.ExampleWebApi;
@@ -21,32 +26,6 @@ public static class UserSessionEndpoints
       )
       .WithName(endpointName: "EndSession")
       .WithOpenApi();
-  }
-
-  private static async Task<IResult> EndSessionHandler(
-    [FromHeader(Name = "Authorization")]
-    string authorizationHeader,
-    [FromBody]
-    BeginSessionRequest request,
-    IUserSessionService service)
-  {
-    if (string.IsNullOrWhiteSpace(request.UserId))
-    {
-      return Results.BadRequest($"{nameof(request.UserId)} is required.");
-    }
-
-    if (string.IsNullOrWhiteSpace(authorizationHeader))
-    {
-      return Results.Unauthorized();
-    }
-
-    string token = authorizationHeader
-      .Split(separator: ' ')
-      .Last();
-
-    EndUserSessionResult endSessionResult = await service.EndSessionAsync(request.UserId, token);
-
-    return endSessionResult.SessionId != null ? Results.Ok() : Results.Forbid();
   }
 
   private static async Task<IResult> BeginSessionHandler(
@@ -78,5 +57,31 @@ public static class UserSessionEndpoints
         SessionId = result.SessionId
       }
     );
+  }
+
+  private static async Task<IResult> EndSessionHandler(
+    [FromHeader(Name = "Authorization")]
+    string authorizationHeader,
+    [FromBody]
+    BeginSessionRequest request,
+    IUserSessionService service)
+  {
+    if (string.IsNullOrWhiteSpace(request.UserId))
+    {
+      return Results.BadRequest($"{nameof(request.UserId)} is required.");
+    }
+
+    if (string.IsNullOrWhiteSpace(authorizationHeader))
+    {
+      return Results.Unauthorized();
+    }
+
+    string token = authorizationHeader
+      .Split(separator: ' ')
+      .Last();
+
+    EndUserSessionResult endSessionResult = await service.EndSessionAsync(request.UserId, token);
+
+    return endSessionResult.SessionId != null ? Results.Ok() : Results.Forbid();
   }
 }

@@ -7,20 +7,6 @@ namespace Jds.NiceNotice.Aws.Sns;
 internal static class SnsNoticeBatching
 {
   /// <summary>
-  ///   The maximum allowed messages per SNS batch.
-  /// </summary>
-  /// <remarks>
-  ///   <para>
-  ///     Source:
-  ///     <a
-  ///       href="https://docs.aws.amazon.com/sdkfornet/v4/apidocs/items/SNS/MSNSPublishBatchAsyncPublishBatchRequestCancellationToken.html">
-  ///       AWS SDK for .NET v4 documentation
-  ///     </a>
-  ///   </para>
-  /// </remarks>
-  internal const int MaxMessagesPerBatch = 10;
-
-  /// <summary>
   ///   The maximum allowed size in bytes of both a single SNS message and the sum of all batched messages.
   /// </summary>
   /// <remarks>
@@ -34,10 +20,19 @@ internal static class SnsNoticeBatching
   /// </remarks>
   internal const int MaximumBytes = 262_144;
 
-  internal static int GetByteCount(string message)
-  {
-    return Encoding.UTF8.GetByteCount(message);
-  }
+  /// <summary>
+  ///   The maximum allowed messages per SNS batch.
+  /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     Source:
+  ///     <a
+  ///       href="https://docs.aws.amazon.com/sdkfornet/v4/apidocs/items/SNS/MSNSPublishBatchAsyncPublishBatchRequestCancellationToken.html">
+  ///       AWS SDK for .NET v4 documentation
+  ///     </a>
+  ///   </para>
+  /// </remarks>
+  internal const int MaxMessagesPerBatch = 10;
 
   /// <summary>
   ///   Groups and preprocesses notices into batches ready for dispatch to AWS SNS.
@@ -167,6 +162,11 @@ internal static class SnsNoticeBatching
       BatchedNotices = batchedNotices,
       Errors = errors
     };
+  }
+
+  internal static int GetByteCount(string message)
+  {
+    return Encoding.UTF8.GetByteCount(message);
   }
 
   private static string? TryGetTopic(EventStreamId streamGroupingKey, Func<EventStreamId, string> topicResolver)

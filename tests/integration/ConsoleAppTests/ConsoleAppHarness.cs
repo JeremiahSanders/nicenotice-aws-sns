@@ -24,17 +24,25 @@ public class ConsoleAppHarness : IDisposable
     ApplicationHost = CreateHost(config, _fakeLogger);
   }
 
-  public static IReadOnlyDictionary<string, string?> DefaultConfiguration { get; } = CreateDefaultConfiguration();
   public IReadOnlyDictionary<string, string?> AdditionalConfiguration { get; }
+
+  public IHost ApplicationHost { get; }
 
   public FakeLogCollector Collector { get; }
 
-  public IHost ApplicationHost { get; }
+  public static IReadOnlyDictionary<string, string?> DefaultConfiguration { get; } = CreateDefaultConfiguration();
 
   public void Dispose()
   {
     _fakeLogger.Dispose();
     ApplicationHost.Dispose();
+  }
+
+  public static IHost CreateHost(Dictionary<string, string?> configuration, FakeLoggerProvider fakeLogger)
+  {
+    IHostBuilder hostBuilder = CreateHostBuilder(configuration, fakeLogger);
+
+    return hostBuilder.Build();
   }
 
   private static Dictionary<string, string?> CreateDefaultConfiguration()
@@ -52,13 +60,6 @@ public class ConsoleAppHarness : IDisposable
       }
     };
     ;
-  }
-
-  public static IHost CreateHost(Dictionary<string, string?> configuration, FakeLoggerProvider fakeLogger)
-  {
-    IHostBuilder hostBuilder = CreateHostBuilder(configuration, fakeLogger);
-
-    return hostBuilder.Build();
   }
 
   private static IHostBuilder CreateHostBuilder(

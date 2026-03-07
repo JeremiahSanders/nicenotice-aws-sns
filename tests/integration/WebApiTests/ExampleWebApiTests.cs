@@ -20,29 +20,6 @@ public class ExampleWebApiTests
   [ClassDataSource<ExampleApiWebApplicationFactory>(Shared = SharedType.PerTestSession)]
   public required ExampleApiWebApplicationFactory ExampleApiWebApplicationFactory { get; init; }
 
-  /// <summary>
-  ///   Invokes the <c>begin session</c> HTTP API and returns the results.
-  /// </summary>
-  /// <returns></returns>
-  private async Task<(HttpResponseMessage response, BeginSessionResult deserializedContent)> Act_BeginSessionAsync()
-  {
-    using HttpClient client = ExampleApiWebApplicationFactory.CreateClient();
-    client.DefaultRequestHeaders.Authorization =
-      new AuthenticationHeaderValue(scheme: "Bearer", parameter: "test-token");
-
-    // Act
-    HttpResponseMessage response = await client.PostAsJsonAsync(
-      requestUri: "/api/sessions/begin",
-      new
-      {
-        userId = $"user-{Randomizer.Shared.IntPositive()}"
-      }
-    );
-    var deserializedContent = await response.DeserializeContentAsync<BeginSessionResult>();
-
-    return (response, deserializedContent);
-  }
-
 
   /// <summary>
   ///   Invokes the <c>begin session</c> HTTP API and subsequently the <c>end session</c> HTTP API,
@@ -53,7 +30,7 @@ public class ExampleWebApiTests
     Act_BeginAndEndSession()
   {
     using HttpClient client = ExampleApiWebApplicationFactory.CreateClient();
-    string userId = $"user-{Randomizer.Shared.IntPositive()}";
+    var userId = $"user-{Randomizer.Shared.IntPositive()}";
     client.DefaultRequestHeaders.Authorization =
       new AuthenticationHeaderValue(scheme: "Bearer", parameter: "test-token");
     HttpResponseMessage beginApiResponse = await client.PostAsJsonAsync(
@@ -77,6 +54,29 @@ public class ExampleWebApiTests
     return (beginSessionResponseBody, response);
   }
 
+  /// <summary>
+  ///   Invokes the <c>begin session</c> HTTP API and returns the results.
+  /// </summary>
+  /// <returns></returns>
+  private async Task<(HttpResponseMessage response, BeginSessionResult deserializedContent)> Act_BeginSessionAsync()
+  {
+    using HttpClient client = ExampleApiWebApplicationFactory.CreateClient();
+    client.DefaultRequestHeaders.Authorization =
+      new AuthenticationHeaderValue(scheme: "Bearer", parameter: "test-token");
+
+    // Act
+    HttpResponseMessage response = await client.PostAsJsonAsync(
+      requestUri: "/api/sessions/begin",
+      new
+      {
+        userId = $"user-{Randomizer.Shared.IntPositive()}"
+      }
+    );
+    var deserializedContent = await response.DeserializeContentAsync<BeginSessionResult>();
+
+    return (response, deserializedContent);
+  }
+
   #region API DTOs
 
   /// <summary>
@@ -87,11 +87,11 @@ public class ExampleWebApiTests
     [JsonPropertyName(name: "schema")]
     public string Schema { get; init; } = string.Empty;
 
-    [JsonPropertyName(name: "timestamp")]
-    public DateTime Timestamp { get; init; }
-
     [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
+
+    [JsonPropertyName(name: "timestamp")]
+    public DateTime Timestamp { get; init; }
   }
 
   /// <summary>
@@ -99,17 +99,17 @@ public class ExampleWebApiTests
   /// </summary>
   public record EndSessionEvent
   {
+    [JsonPropertyName(name: "duration")]
+    public TimeSpan? Duration { get; init; }
+
     [JsonPropertyName(name: "schema")]
     public string Schema { get; init; } = string.Empty;
-
-    [JsonPropertyName(name: "timestamp")]
-    public DateTime Timestamp { get; init; }
 
     [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
 
-    [JsonPropertyName(name: "duration")]
-    public TimeSpan? Duration { get; init; }
+    [JsonPropertyName(name: "timestamp")]
+    public DateTime Timestamp { get; init; }
   }
 
   /// <summary>
@@ -149,7 +149,7 @@ public class ExampleWebApiTests
     IReadOnlyList<FakeLogRecord> recentLogs = ExampleApiWebApplicationFactory.Collector.GetSnapshot();
     await Assert
       .That(recentLogs)
-      .DoesNotContain((FakeLogRecord fakeLogRecord) => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
+      .DoesNotContain(fakeLogRecord => fakeLogRecord.Level is LogLevel.Error or LogLevel.Critical);
   }
 
   /// <summary>

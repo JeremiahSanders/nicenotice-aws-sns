@@ -14,9 +14,9 @@ public class MockSns : IAmazonSimpleNotificationService
 {
   private readonly ConcurrentBag<PublishBatchRequest> _capturedBatchRequests = [];
   private readonly ConcurrentBag<PublishRequest> _capturedRequests = [];
+  public IEnumerable<PublishBatchRequest> CapturedBatchRequests => _capturedBatchRequests;
 
   public IEnumerable<PublishRequest> CapturedRequests => _capturedRequests;
-  public IEnumerable<PublishBatchRequest> CapturedBatchRequests => _capturedBatchRequests;
 
   void IDisposable.Dispose()
   {

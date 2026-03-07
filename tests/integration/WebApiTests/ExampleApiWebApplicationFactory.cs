@@ -37,16 +37,6 @@ public class ExampleApiWebApplicationFactory : WebApplicationFactory<Program>, I
     return Task.CompletedTask;
   }
 
-  private static IReadOnlyDictionary<string, string?> GenerateInitialConfiguration()
-  {
-    return new Dictionary<string, string?>
-    {
-      {
-        "sns:topics:default", "arn:aws:sns:eu-west-1:123456789012:example-topic"
-      }
-    };
-  }
-
   protected override void ConfigureWebHost(IWebHostBuilder builder)
   {
     builder
@@ -71,5 +61,15 @@ public class ExampleApiWebApplicationFactory : WebApplicationFactory<Program>, I
           logging.AddProvider(_fakeLogger);
         }
       );
+  }
+
+  private static IReadOnlyDictionary<string, string?> GenerateInitialConfiguration()
+  {
+    return new Dictionary<string, string?>
+    {
+      {
+        "sns:topics:default", "arn:aws:sns:eu-west-1:123456789012:example-topic"
+      }
+    };
   }
 }

@@ -50,6 +50,21 @@ public class AwsTestHarness : IAsyncInitializer
     );
   }
 
+  public IAmazonSimpleNotificationService CreateSnsClient()
+  {
+    return AwsSnsIo.CreateSnsClient(GetConfiguration().GetTestAwsSnsServiceUrl());
+  }
+
+  public IAmazonSQS CreateSqsClient()
+  {
+    return AwsSqsIo.CreateSqsClient(GetConfiguration().GetTestAwsSqsServiceUrl());
+  }
+
+  public ISnsTopicResolver CreateTopicResolver()
+  {
+    return CreateTopicResolver(GetConfiguration());
+  }
+
   /// <summary>
   ///   Retrieves all messages from the specified queue.
   /// </summary>
@@ -60,6 +75,32 @@ public class AwsTestHarness : IAsyncInitializer
     return _sqsMessages.TryGetValue(queueUrl, out ConcurrentBag<Message>? messages)
       ? messages.AsEnumerable()
       : [];
+  }
+
+  public string? GetMessageStreamArn(ConfiguredSnsTopics topic)
+  {
+    return GetConfiguration().GetMessageStreamArn(topic);
+  }
+
+  public string? GetQueueArn(ConfiguredSnsTopics topicWhichQueueFollows)
+  {
+    return GetConfiguration().GetQueueArn(topicWhichQueueFollows);
+  }
+
+  public ISnsNoticeIo GetSnsNoticeIo()
+  {
+    return new SnsNoticeIo(CreateSnsClient(), CreateTopicResolver());
+  }
+
+  public IAmazonSQS GetSqsClient()
+  {
+    return AwsSqsIo.CreateSqsClient(GetConfiguration().GetTestAwsSqsServiceUrl());
+  }
+
+  public async Task PurgeQueueAsync(string queueArn)
+  {
+    // "Purge", but still capture
+    await ExtractMessagesInQueueAsync(queueArn);
   }
 
   private async Task<IEnumerable<Message>> ExtractMessagesInQueueAsync(string queueUrl)
@@ -82,46 +123,5 @@ public class AwsTestHarness : IAsyncInitializer
   private IConfiguration GetConfiguration()
   {
     return _configuration.Value;
-  }
-
-  public ISnsTopicResolver CreateTopicResolver()
-  {
-    return CreateTopicResolver(GetConfiguration());
-  }
-
-  public IAmazonSQS GetSqsClient()
-  {
-    return AwsSqsIo.CreateSqsClient(GetConfiguration().GetTestAwsSqsServiceUrl());
-  }
-
-  public IAmazonSimpleNotificationService CreateSnsClient()
-  {
-    return AwsSnsIo.CreateSnsClient(GetConfiguration().GetTestAwsSnsServiceUrl());
-  }
-
-  public ISnsNoticeIo GetSnsNoticeIo()
-  {
-    return new SnsNoticeIo(CreateSnsClient(), CreateTopicResolver());
-  }
-
-  public IAmazonSQS CreateSqsClient()
-  {
-    return AwsSqsIo.CreateSqsClient(GetConfiguration().GetTestAwsSqsServiceUrl());
-  }
-
-  public async Task PurgeQueueAsync(string queueArn)
-  {
-    // "Purge", but still capture
-    await ExtractMessagesInQueueAsync(queueArn);
-  }
-
-  public string? GetMessageStreamArn(ConfiguredSnsTopics topic)
-  {
-    return GetConfiguration().GetMessageStreamArn(topic);
-  }
-
-  public string? GetQueueArn(ConfiguredSnsTopics topicWhichQueueFollows)
-  {
-    return GetConfiguration().GetQueueArn(topicWhichQueueFollows);
   }
 }

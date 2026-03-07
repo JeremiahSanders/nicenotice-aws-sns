@@ -9,6 +9,26 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.ConsoleAppTests;
 public class BatchWorkflowTests
 {
   [Test]
+  public async Task BatchWorkflowDoesNotLogAnyErrors()
+  {
+    // Arrange
+    using ConsoleAppHarness consoleAppHarness = new();
+
+    // Act
+    BatchWorkflowResult _ = await ActAsync(consoleAppHarness);
+
+    // Assert
+    IReadOnlyList<FakeLogRecord> logs = consoleAppHarness
+      .Collector
+      .GetSnapshot();
+    await Assert
+      .That(logs)
+      .DoesNotContain(logRecord =>
+        logRecord.Level is LogLevel.Error or LogLevel.Critical or LogLevel.Warning
+      );
+  }
+
+  [Test]
   public async Task BatchWorkflowExecutesSuccessfully()
   {
     // Arrange
@@ -27,36 +47,6 @@ public class BatchWorkflowTests
       .IsTrue();
   }
 
-  private async Task<BatchWorkflowResult> ActAsync(ConsoleAppHarness harness)
-  {
-    var workflow = harness.ApplicationHost.Services.GetRequiredService<BatchWorkflow>();
-
-    // Act
-    BatchWorkflowResult result = await workflow.RunAsync();
-
-    return result;
-  }
-
-  [Test]
-  public async Task BatchWorkflowDoesNotLogAnyErrors()
-  {
-    // Arrange
-    using ConsoleAppHarness consoleAppHarness = new();
-
-    // Act
-    BatchWorkflowResult _ = await ActAsync(consoleAppHarness);
-
-    // Assert
-    IReadOnlyList<FakeLogRecord> logs = consoleAppHarness
-      .Collector
-      .GetSnapshot();
-    await Assert
-      .That(logs)
-      .DoesNotContain((FakeLogRecord logRecord) =>
-        logRecord.Level is LogLevel.Error or LogLevel.Critical or LogLevel.Warning
-      );
-  }
-
   [Test]
   public async Task BatchWorkflowLogsCompletion()
   {
@@ -72,44 +62,8 @@ public class BatchWorkflowTests
       .GetSnapshot();
     await Assert
       .That(logs)
-      .Contains((FakeLogRecord logRecord) => logRecord.Level is LogLevel.Information &&
-                                             logRecord.Message.Contains(value: "Batch workflow completed successfully.")
-      );
-  }
-
-  [Test]
-  [Arguments("BatchExtractionComplete")]
-  public async Task EmitsEventToSns(string enterpriseEventName)
-  {
-    // Arrange
-    using ConsoleAppHarness consoleAppHarness = new();
-    string expectedTopic = ConsoleAppHarness.DefaultConfiguration.Single(kvp => kvp.Key.Equals(
-                                 value: "sns:topics:default",
-                                 StringComparison.OrdinalIgnoreCase
-                               )
-                             )
-                             .Value
-                           ?? throw new InvalidOperationException(message: "Default topic not configured");
-
-    // Act
-    BatchWorkflowResult result = await ActAsync(consoleAppHarness);
-
-    // Assert
-    var sns = consoleAppHarness.ApplicationHost.Services.GetRequiredService<MockSns>();
-    await Assert
-      .That(sns.CapturedRequests)
-      .Contains(snsMessage =>
-        SnsJsonAssertions.MatchesMessageJsonPropertyExact(
-          snsMessage,
-          rootObjectPropertyName: "schema",
-          enterpriseEventName
-        )
-        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
-          snsMessage,
-          rootObjectPropertyName: "timestamp",
-          jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
-        )
-        && snsMessage.TopicArn == expectedTopic
+      .Contains(logRecord => logRecord.Level is LogLevel.Information &&
+                             logRecord.Message.Contains(value: "Batch workflow completed successfully.")
       );
   }
 
@@ -155,5 +109,51 @@ public class BatchWorkflowTests
         )
         && snsMessage.TopicArn == expectedTopic
       );
+  }
+
+  [Test]
+  [Arguments("BatchExtractionComplete")]
+  public async Task EmitsEventToSns(string enterpriseEventName)
+  {
+    // Arrange
+    using ConsoleAppHarness consoleAppHarness = new();
+    string expectedTopic = ConsoleAppHarness.DefaultConfiguration.Single(kvp => kvp.Key.Equals(
+                                 value: "sns:topics:default",
+                                 StringComparison.OrdinalIgnoreCase
+                               )
+                             )
+                             .Value
+                           ?? throw new InvalidOperationException(message: "Default topic not configured");
+
+    // Act
+    BatchWorkflowResult result = await ActAsync(consoleAppHarness);
+
+    // Assert
+    var sns = consoleAppHarness.ApplicationHost.Services.GetRequiredService<MockSns>();
+    await Assert
+      .That(sns.CapturedRequests)
+      .Contains(snsMessage =>
+        SnsJsonAssertions.MatchesMessageJsonPropertyExact(
+          snsMessage,
+          rootObjectPropertyName: "schema",
+          enterpriseEventName
+        )
+        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
+          snsMessage,
+          rootObjectPropertyName: "timestamp",
+          jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
+        )
+        && snsMessage.TopicArn == expectedTopic
+      );
+  }
+
+  private async Task<BatchWorkflowResult> ActAsync(ConsoleAppHarness harness)
+  {
+    var workflow = harness.ApplicationHost.Services.GetRequiredService<BatchWorkflow>();
+
+    // Act
+    BatchWorkflowResult result = await workflow.RunAsync();
+
+    return result;
   }
 }

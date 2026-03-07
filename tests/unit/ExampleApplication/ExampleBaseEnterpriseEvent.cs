@@ -26,18 +26,18 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
 public record ExampleBaseEnterpriseEvent
 {
   /// <summary>
-  ///   Gets the timestamp associated with this enterprise event
-  ///   (in general, understood to mean &quot;when&quot; this event occurred).
-  /// </summary>
-  public DateTime Timestamp { get; init; } = DateTime.UtcNow;
-
-  /// <summary>
   ///   Gets the name of this schema/type of enterprise event.
   ///   This is not a message; interpret as an enumeration value shared by all notices of the same &quot;type&quot;.
   /// </summary>
   /// <remarks>Use <see cref="CreateEventName" />to create a name in the preferred format.</remarks>
   [Required(AllowEmptyStrings = false)]
   public string Name { get; init; } = string.Empty;
+
+  /// <summary>
+  ///   Gets the timestamp associated with this enterprise event
+  ///   (in general, understood to mean &quot;when&quot; this event occurred).
+  /// </summary>
+  public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 
   protected static string CreateEventName(string eventTitle, int eventSchemaRevision)
   {

@@ -6,8 +6,8 @@ namespace Jds.NiceNotice.Aws.Sns;
 
 internal class SnsNoticeBatch
 {
-  public required string TopicArn { get; init; }
   public required List<BatchedIoResponseNotice> Notices { get; init; }
+  public required string TopicArn { get; init; }
 
   public PublishBatchRequest ToPublishBatchRequest()
   {

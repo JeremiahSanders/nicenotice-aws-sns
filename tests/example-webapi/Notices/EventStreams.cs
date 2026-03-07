@@ -18,12 +18,12 @@ namespace NiceNotice.Tests.ExampleWebApi.Notices;
 public static class EventStreams
 {
   /// <summary>
-  ///   User sessions stream. (E.g., sign in, sign out)
-  /// </summary>
-  public const string UserSessions = "user-sessions";
-
-  /// <summary>
   ///   Default stream for events that do not belong to any other stream.
   /// </summary>
   public const string Default = "default";
+
+  /// <summary>
+  ///   User sessions stream. (E.g., sign in, sign out)
+  /// </summary>
+  public const string UserSessions = "user-sessions";
 }

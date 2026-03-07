@@ -1,4 +1,9 @@
+using System;
+using System.Threading.Tasks;
+
 using Jds.NiceNotice;
+
+using Microsoft.Extensions.Logging;
 
 using NiceNotice.Tests.ExampleWebApi.Notices;
 

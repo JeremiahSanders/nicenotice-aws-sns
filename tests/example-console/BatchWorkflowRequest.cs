@@ -4,9 +4,8 @@ namespace NiceNotice.Tests.ExampleConsoleApp;
 
 public record BatchWorkflowRequest : IValidatableObject
 {
-  public OutputDestination Output { get; init; } = new();
-
   public string InputFile { get; init; } = string.Empty;
+  public OutputDestination Output { get; init; } = new();
 
   public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
   {

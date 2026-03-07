@@ -9,15 +9,30 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 public class ConfigurationSnsTopicResolverTests
 {
   [Test]
-  public void ThrowsWhenNoDefaultTopicIsConfiguredAndCannotResolveTopic()
+  public void CorrectlyRoutesToConfiguredTopics()
   {
-    var sourceOptions = new ConfigurationSnsTopicOptions();
+    var sourceOptions = new ConfigurationSnsTopicOptions
+    {
+      Default = Randomizer.Shared.AwsSnsArn(),
+      Streams = new Dictionary<string, string>
+      {
+        {
+          "system", Randomizer.Shared.AwsSnsArn()
+        },
+        {
+          "app-lifetime", Randomizer.Shared.AwsSnsArn()
+        }
+      }
+    };
     OptionsMonitor<ConfigurationSnsTopicOptions> optionsMonitor = CreateOptionsMonitor(sourceOptions);
 
     ISnsTopicResolver resolver = TopicResolvers.Configuration(optionsMonitor);
 
-    Func<string> action = () => resolver.GetTopicArn(EventStreamId.From(Guid.NewGuid().ToString()));
-    action.ShouldThrow<SnsStreamRoutingException>();
+    // Act
+    IEnumerable<(string Actual, string Expected)> results = sourceOptions.Streams
+      .Select(kvp => (Actual: resolver.GetTopicArn(EventStreamId.From(kvp.Key)), Expected: kvp.Value));
+    // Assert
+    results.ShouldAllBe(tuple => tuple.Actual == tuple.Expected);
   }
 
   [Test]
@@ -48,30 +63,15 @@ public class ConfigurationSnsTopicResolverTests
   }
 
   [Test]
-  public void CorrectlyRoutesToConfiguredTopics()
+  public void ThrowsWhenNoDefaultTopicIsConfiguredAndCannotResolveTopic()
   {
-    var sourceOptions = new ConfigurationSnsTopicOptions
-    {
-      Default = Randomizer.Shared.AwsSnsArn(),
-      Streams = new Dictionary<string, string>
-      {
-        {
-          "system", Randomizer.Shared.AwsSnsArn()
-        },
-        {
-          "app-lifetime", Randomizer.Shared.AwsSnsArn()
-        }
-      }
-    };
+    var sourceOptions = new ConfigurationSnsTopicOptions();
     OptionsMonitor<ConfigurationSnsTopicOptions> optionsMonitor = CreateOptionsMonitor(sourceOptions);
 
     ISnsTopicResolver resolver = TopicResolvers.Configuration(optionsMonitor);
 
-    // Act
-    IEnumerable<(string Actual, string Expected)> results = sourceOptions.Streams
-      .Select(kvp => (Actual: resolver.GetTopicArn(EventStreamId.From(kvp.Key)), Expected: kvp.Value));
-    // Assert
-    results.ShouldAllBe(tuple => tuple.Actual == tuple.Expected);
+    Func<string> action = () => resolver.GetTopicArn(EventStreamId.From(Guid.NewGuid().ToString()));
+    action.ShouldThrow<SnsStreamRoutingException>();
   }
 
   private static OptionsMonitor<ConfigurationSnsTopicOptions> CreateOptionsMonitor(
