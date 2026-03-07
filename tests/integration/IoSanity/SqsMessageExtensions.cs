@@ -8,21 +8,6 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity;
 
 public static class SqsMessageExtensions
 {
-  public static TBody? TryDeserializeBodyAsSnsEnvelopeOverJson<TBody>(
-    this Message message,
-    JsonSerializerOptions? serializerOptions = null)
-    where TBody : class
-  {
-    try
-    {
-      return message.DeserializeBodyAsSnsEnvelopeOverJson<TBody>(serializerOptions);
-    }
-    catch (Exception e)
-    {
-      return null;
-    }
-  }
-
   public static TBody DeserializeBodyAsSnsEnvelopeOverJson<TBody>(
     this Message message,
     JsonSerializerOptions? serializerOptions = null
@@ -59,5 +44,20 @@ public static class SqsMessageExtensions
           serializerOptions ?? JsonDefaults.DefaultJsonSerializerOptions
         )
         ?? throw new InvalidOperationException(message: "Failed to deserialize message body. Received null.");
+  }
+
+  public static TBody? TryDeserializeBodyAsSnsEnvelopeOverJson<TBody>(
+    this Message message,
+    JsonSerializerOptions? serializerOptions = null)
+    where TBody : class
+  {
+    try
+    {
+      return message.DeserializeBodyAsSnsEnvelopeOverJson<TBody>(serializerOptions);
+    }
+    catch (Exception e)
+    {
+      return null;
+    }
   }
 }

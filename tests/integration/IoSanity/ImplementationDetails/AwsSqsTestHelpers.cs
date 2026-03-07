@@ -7,6 +7,23 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetail
 
 public static class AwsSqsTestHelpers
 {
+  public static SnsEnvelope? ExtractSnsEnvelope(this Message sqsMessage)
+  {
+    return JsonSerializer.Deserialize<SnsEnvelope>(sqsMessage.Body);
+  }
+
+  public static string? ExtractSnsMessage(this Message sqsMessage)
+  {
+    return sqsMessage.ExtractSnsEnvelope()?.Message;
+  }
+
+  public static T? ParseSnsMessage<T>(this Message sqsMessage) where T : class
+  {
+    string? message = sqsMessage.ExtractSnsMessage();
+
+    return message == null ? null : JsonSerializer.Deserialize<T>(message);
+  }
+
   /// <summary>
   ///   Empties the queue using the Purge operation.
   ///   Note: AWS limits purge operations to once every 60 seconds per queue.
@@ -19,23 +36,6 @@ public static class AwsSqsTestHelpers
         QueueUrl = queueUrl
       }
     );
-  }
-
-  public static T? ParseSnsMessage<T>(this Message sqsMessage) where T : class
-  {
-    string? message = sqsMessage.ExtractSnsMessage();
-
-    return message == null ? null : JsonSerializer.Deserialize<T>(message);
-  }
-
-  public static string? ExtractSnsMessage(this Message sqsMessage)
-  {
-    return sqsMessage.ExtractSnsEnvelope()?.Message;
-  }
-
-  public static SnsEnvelope? ExtractSnsEnvelope(this Message sqsMessage)
-  {
-    return JsonSerializer.Deserialize<SnsEnvelope>(sqsMessage.Body);
   }
 
 

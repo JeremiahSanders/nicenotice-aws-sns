@@ -143,8 +143,8 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
 
   public static class ConfiguredEventStreams
   {
-    public static readonly EventStreamId Primary = EventStreamId.From(value: "Primary");
-    public static readonly EventStreamId HighPriority = EventStreamId.From(value: "HighPriority");
     public static readonly EventStreamId Errors = EventStreamId.From(value: "Errors");
+    public static readonly EventStreamId HighPriority = EventStreamId.From(value: "HighPriority");
+    public static readonly EventStreamId Primary = EventStreamId.From(value: "Primary");
   }
 }

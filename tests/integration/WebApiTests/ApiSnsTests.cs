@@ -18,6 +18,26 @@ public class ApiSnsTests
   public required ExampleApiWebApplicationFactory ExampleApiWebApplicationFactory { get; init; }
 
   [Test]
+  public async Task CanPublishToTopic()
+  {
+    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
+    var mockSns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
+    IAmazonSimpleNotificationService asSns = mockSns;
+
+    PublishRequest publishRequest = new()
+    {
+      Message = Guid.NewGuid().ToString(),
+      TopicArn = Randomizer.Shared.AwsSnsArn()
+    };
+
+    PublishResponse? _ = await asSns.PublishAsync(publishRequest);
+
+    await Assert
+      .That(mockSns.CapturedRequests)
+      .Contains(captured => captured.TopicArn == publishRequest.TopicArn && captured.Message == publishRequest.Message);
+  }
+
+  [Test]
   public async Task Sanity_SnsIsConfigured()
   {
     var service =
@@ -42,25 +62,5 @@ public class ApiSnsTests
     await Assert
       .That((IEnumerable<KeyValuePair<string, string>>)options.Value.Streams)
       .IsNotEmpty();
-  }
-
-  [Test]
-  public async Task CanPublishToTopic()
-  {
-    using IServiceScope dependencyScope = ExampleApiWebApplicationFactory.Services.CreateScope();
-    var mockSns = dependencyScope.ServiceProvider.GetRequiredService<MockSns>();
-    IAmazonSimpleNotificationService asSns = mockSns;
-
-    PublishRequest publishRequest = new()
-    {
-      Message = Guid.NewGuid().ToString(),
-      TopicArn = Randomizer.Shared.AwsSnsArn()
-    };
-
-    PublishResponse? _ = await asSns.PublishAsync(publishRequest);
-
-    await Assert
-      .That(mockSns.CapturedRequests)
-      .Contains(captured => captured.TopicArn == publishRequest.TopicArn && captured.Message == publishRequest.Message);
   }
 }

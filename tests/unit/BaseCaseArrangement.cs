@@ -35,7 +35,12 @@ public abstract class BaseCaseArrangement : IAsyncInitializer, IAsyncDisposable
     await CleanupAsync();
   }
 
-  protected virtual Task ArrangeAsync()
+  protected virtual Task AcquireSanityValuesAsync()
+  {
+    return Task.CompletedTask;
+  }
+
+  protected virtual Task AcquireVerificationValuesAsync()
   {
     return Task.CompletedTask;
   }
@@ -45,12 +50,7 @@ public abstract class BaseCaseArrangement : IAsyncInitializer, IAsyncDisposable
     return Task.CompletedTask;
   }
 
-  protected virtual Task AcquireSanityValuesAsync()
-  {
-    return Task.CompletedTask;
-  }
-
-  protected virtual Task AcquireVerificationValuesAsync()
+  protected virtual Task ArrangeAsync()
   {
     return Task.CompletedTask;
   }

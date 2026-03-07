@@ -4,11 +4,19 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetail
 
 public static class AwsSnsIo
 {
-  private static string? GetMessageStreamArn(this IConfiguration configuration, string key)
+  public static IAmazonSimpleNotificationService CreateSnsClient(string? serviceUrl = null)
   {
-    return configuration
-      .GetSection(key: "Tests:Topics")
-      .GetValue<string>(key);
+    string? url = serviceUrl ?? IntegrationTestConfiguration
+      .LoadConfiguration()
+      .GetTestAwsSnsServiceUrl();
+
+    return new AmazonSimpleNotificationServiceClient(
+      new AmazonSimpleNotificationServiceConfig
+      {
+        ServiceURL = url,
+        DefaultAWSCredentials = AwsCredentialsHelpers.CreateTestAwsCredentials()
+      }
+    );
   }
 
   internal static string? GetMessageStreamArn(this IConfiguration configuration, ConfiguredSnsTopics topic)
@@ -30,19 +38,10 @@ public static class AwsSnsIo
       .GetValue<string>(key: "ServiceUrl");
   }
 
-
-  public static IAmazonSimpleNotificationService CreateSnsClient(string? serviceUrl = null)
+  private static string? GetMessageStreamArn(this IConfiguration configuration, string key)
   {
-    string? url = serviceUrl ?? IntegrationTestConfiguration
-      .LoadConfiguration()
-      .GetTestAwsSnsServiceUrl();
-
-    return new AmazonSimpleNotificationServiceClient(
-      new AmazonSimpleNotificationServiceConfig
-      {
-        ServiceURL = url,
-        DefaultAWSCredentials = AwsCredentialsHelpers.CreateTestAwsCredentials()
-      }
-    );
+    return configuration
+      .GetSection(key: "Tests:Topics")
+      .GetValue<string>(key);
   }
 }

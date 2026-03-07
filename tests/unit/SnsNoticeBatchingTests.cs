@@ -17,12 +17,6 @@ public class SnsNoticeBatchingTests
       public required GroupingArrangement Arrangement { get; init; }
 
       [Test]
-      public void ReturnsNoErrors()
-      {
-        Arrangement.ActResult.Errors.ShouldBeEmpty();
-      }
-
-      [Test]
       public void HaveExpectedTopicArns()
       {
         Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
@@ -47,6 +41,12 @@ public class SnsNoticeBatchingTests
           snsNoticeBatch.Notices.Sum(notice => SnsNoticeBatching.GetByteCount(notice.Notice)) <= maximumBytes
         );
       }
+
+      [Test]
+      public void ReturnsNoErrors()
+      {
+        Arrangement.ActResult.Errors.ShouldBeEmpty();
+      }
     }
 
     public class GroupingArrangement : RandomBatchesArrangement
@@ -70,22 +70,6 @@ public class SnsNoticeBatchingTests
         );
       }
 
-      /// <summary>
-      ///   This is a logical peer of <see cref="HaveNoMoreThan1EntryPerBatch" />,
-      ///   but viewed from the batch count, rather than contents of each batch.
-      /// </summary>
-      [Test]
-      public void ReturnsOneBatchPerEvent()
-      {
-        Arrangement.ActResult.BatchedNotices.Count.ShouldBe(Arrangement.RequestNotices.Count);
-      }
-
-      [Test]
-      public void ReturnsNoErrors()
-      {
-        Arrangement.ActResult.Errors.ShouldBeEmpty();
-      }
-
       [Test]
       public void HaveNoMoreThanMaximumBytesPerBatch()
       {
@@ -94,6 +78,22 @@ public class SnsNoticeBatchingTests
         Arrangement.ActResult.BatchedNotices.ShouldAllBe(snsNoticeBatch =>
           snsNoticeBatch.Notices.Sum(notice => SnsNoticeBatching.GetByteCount(notice.Notice)) <= maximumBytes
         );
+      }
+
+      [Test]
+      public void ReturnsNoErrors()
+      {
+        Arrangement.ActResult.Errors.ShouldBeEmpty();
+      }
+
+      /// <summary>
+      ///   This is a logical peer of <see cref="HaveNoMoreThan1EntryPerBatch" />,
+      ///   but viewed from the batch count, rather than contents of each batch.
+      /// </summary>
+      [Test]
+      public void ReturnsOneBatchPerEvent()
+      {
+        Arrangement.ActResult.BatchedNotices.Count.ShouldBe(Arrangement.RequestNotices.Count);
       }
 
       [Test]
@@ -138,6 +138,18 @@ public class SnsNoticeBatchingTests
         Errors = []
       };
 
+      internal SnsNoticeBatchingResult InvokeSystemUnderTest()
+      {
+        return SnsNoticeBatching.BatchNotices(TopicResolver, RequestNotices);
+      }
+
+      protected override Task ActAsync()
+      {
+        ActResult = InvokeSystemUnderTest();
+
+        return base.ActAsync();
+      }
+
       protected override Task ArrangeAsync()
       {
         Streams = Randomizer
@@ -173,21 +185,9 @@ public class SnsNoticeBatchingTests
         return EventStreamId.From($"stream{index}");
       }
 
-      internal SnsNoticeBatchingResult InvokeSystemUnderTest()
-      {
-        return SnsNoticeBatching.BatchNotices(TopicResolver, RequestNotices);
-      }
-
       protected virtual string TopicResolver(EventStreamId streamId)
       {
         return $"{BaseTopic}{streamId}";
-      }
-
-      protected override Task ActAsync()
-      {
-        ActResult = InvokeSystemUnderTest();
-
-        return base.ActAsync();
       }
     }
   }

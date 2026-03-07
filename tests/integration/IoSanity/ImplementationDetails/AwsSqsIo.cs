@@ -4,11 +4,19 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetail
 
 public static class AwsSqsIo
 {
-  private static string? GetQueueArn(this IConfiguration configuration, string key)
+  public static IAmazonSQS CreateSqsClient(string? serviceUrl = null)
   {
-    return configuration
-      .GetSection(key: "Tests:Queues")
-      .GetValue<string>(key);
+    string? url = serviceUrl ?? IntegrationTestConfiguration
+      .LoadConfiguration()
+      .GetTestAwsSqsServiceUrl();
+
+    return new AmazonSQSClient(
+      new AmazonSQSConfig
+      {
+        ServiceURL = url,
+        DefaultAWSCredentials = AwsCredentialsHelpers.CreateTestAwsCredentials()
+      }
+    );
   }
 
   internal static string? GetQueueArn(this IConfiguration configuration, ConfiguredSnsTopics topic)
@@ -29,18 +37,10 @@ public static class AwsSqsIo
       .GetValue<string>(key: "ServiceUrl");
   }
 
-  public static IAmazonSQS CreateSqsClient(string? serviceUrl = null)
+  private static string? GetQueueArn(this IConfiguration configuration, string key)
   {
-    string? url = serviceUrl ?? IntegrationTestConfiguration
-      .LoadConfiguration()
-      .GetTestAwsSqsServiceUrl();
-
-    return new AmazonSQSClient(
-      new AmazonSQSConfig
-      {
-        ServiceURL = url,
-        DefaultAWSCredentials = AwsCredentialsHelpers.CreateTestAwsCredentials()
-      }
-    );
+    return configuration
+      .GetSection(key: "Tests:Queues")
+      .GetValue<string>(key);
   }
 }

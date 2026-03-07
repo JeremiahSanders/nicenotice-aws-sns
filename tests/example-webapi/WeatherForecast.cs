@@ -1,3 +1,5 @@
+using System;
+
 namespace NiceNotice.Tests.ExampleWebApi;
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

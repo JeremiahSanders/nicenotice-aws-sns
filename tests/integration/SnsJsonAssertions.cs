@@ -54,29 +54,6 @@ public static class SnsJsonAssertions
     return MatchesJson(publishRequest.Message, assertion, options);
   }
 
-  public static bool MatchesMessageJsonPropertyExact(
-    PublishRequest publishRequest,
-    string rootObjectPropertyName,
-    string rootObjectPropertyValue,
-    JsonDocumentOptions? options = null
-  )
-  {
-    try
-    {
-      return MatchesMessageJson(
-        publishRequest,
-        doc => doc
-          .RootElement.GetProperty(rootObjectPropertyName)
-          .GetString() == rootObjectPropertyValue,
-        options
-      );
-    }
-    catch
-    {
-      return false;
-    }
-  }
-
   public static bool MatchesMessageJsonPropertyElement(
     PublishRequest publishRequest,
     string rootObjectPropertyName,
@@ -92,6 +69,53 @@ public static class SnsJsonAssertions
           doc
             .RootElement.GetProperty(rootObjectPropertyName)
         ),
+        options
+      );
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  public static bool MatchesMessageJsonPropertyElement(
+    PublishBatchRequestEntry publishRequest,
+    string rootObjectPropertyName,
+    Func<JsonElement, bool> assertion,
+    JsonDocumentOptions? options = null
+  )
+  {
+    try
+    {
+      return MatchesMessageJson(
+        publishRequest,
+        doc => assertion(
+          doc
+            .RootElement.GetProperty(rootObjectPropertyName)
+        ),
+        options
+      );
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  public static bool MatchesMessageJsonPropertyExact(
+    PublishRequest publishRequest,
+    string rootObjectPropertyName,
+    string rootObjectPropertyValue,
+    JsonDocumentOptions? options = null
+  )
+  {
+    try
+    {
+      return MatchesMessageJson(
+        publishRequest,
+        doc => doc
+          .RootElement.GetProperty(rootObjectPropertyName)
+          .GetString() == rootObjectPropertyValue,
         options
       );
     }
@@ -130,29 +154,5 @@ public static class SnsJsonAssertions
     JsonDocumentOptions? options = null)
   {
     return MatchesJson(publishRequest.Message, assertion, options);
-  }
-
-  public static bool MatchesMessageJsonPropertyElement(
-    PublishBatchRequestEntry publishRequest,
-    string rootObjectPropertyName,
-    Func<JsonElement, bool> assertion,
-    JsonDocumentOptions? options = null
-  )
-  {
-    try
-    {
-      return MatchesMessageJson(
-        publishRequest,
-        doc => assertion(
-          doc
-            .RootElement.GetProperty(rootObjectPropertyName)
-        ),
-        options
-      );
-    }
-    catch
-    {
-      return false;
-    }
   }
 }

@@ -2,6 +2,10 @@ using Jds.NiceNotice;
 using Jds.NiceNotice.Aws.Sns;
 using Jds.NiceNotice.TypedNotices.Validation;
 
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 using NiceNotice.Tests.ExampleWebApi;
 using NiceNotice.Tests.ExampleWebApi.Notices;
 
