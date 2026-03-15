@@ -8,6 +8,11 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit;
 
 public class ConfigurationSnsTopicResolverTests
 {
+  private const string exampleStreamNameFromEnvironment = "MAXIMUMITEMSPERBATCH";
+  private const string exampleStreamNameFromInternalConstant = "MaximumItemsPerBatch";
+  private const string exampleStreamNameFromJsonConfiguration = "maximumItemsPerBatch";
+
+
   [Test]
   public void CorrectlyRoutesToConfiguredTopics()
   {
@@ -60,6 +65,55 @@ public class ConfigurationSnsTopicResolverTests
       .GetTopicArn(EventStreamId.From(Guid.NewGuid().ToString()))
       // Assert
       .ShouldBe(sourceOptions.Default);
+  }
+
+  [Test]
+  [Arguments(exampleStreamNameFromEnvironment, exampleStreamNameFromEnvironment, true)]
+  [Arguments(exampleStreamNameFromEnvironment, exampleStreamNameFromJsonConfiguration, true)]
+  [Arguments(exampleStreamNameFromEnvironment, exampleStreamNameFromInternalConstant, true)]
+  [Arguments(exampleStreamNameFromJsonConfiguration, exampleStreamNameFromEnvironment, true)]
+  [Arguments(exampleStreamNameFromJsonConfiguration, exampleStreamNameFromJsonConfiguration, true)]
+  [Arguments(exampleStreamNameFromJsonConfiguration, exampleStreamNameFromInternalConstant, true)]
+  [Arguments(exampleStreamNameFromInternalConstant, exampleStreamNameFromEnvironment, true)]
+  [Arguments(exampleStreamNameFromInternalConstant, exampleStreamNameFromJsonConfiguration, true)]
+  [Arguments(exampleStreamNameFromInternalConstant, exampleStreamNameFromInternalConstant, true)]
+  [Arguments(exampleStreamNameFromEnvironment, "nonexistentStream", false)]
+  public void ResolvesFromConfigurationMapCaseInsensitively(
+    string configuredStreamName,
+    string requestStreamName,
+    bool shouldReturnRoute
+  )
+  {
+    string defaultArn = Randomizer.Shared.AwsSnsArn();
+    string configuredArn = Randomizer.Shared.AwsSnsArn();
+    var sourceOptions = new ConfigurationSnsTopicOptions
+    {
+      Default = defaultArn,
+      Streams = new Dictionary<string, string>
+      {
+        {
+          configuredStreamName, configuredArn
+        }
+      }
+    };
+    OptionsMonitor<ConfigurationSnsTopicOptions> optionsMonitor = CreateOptionsMonitor(sourceOptions);
+
+    ISnsTopicResolver resolver = TopicResolvers.Configuration(optionsMonitor);
+
+    // Act
+    string result = resolver.GetTopicArn(EventStreamId.From(requestStreamName));
+
+    // Assert
+    if (shouldReturnRoute)
+    {
+      result.ShouldBe(configuredArn);
+      result.ShouldNotBe(defaultArn);
+    }
+    else
+    {
+      result.ShouldBe(defaultArn);
+      result.ShouldNotBe(configuredArn);
+    }
   }
 
   [Test]
