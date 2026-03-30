@@ -36,7 +36,7 @@
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
-    <PackageReference Include="NiceNotice" Version="0.1.0-build-20260222-200524-sha-0e3e345" />
+    <PackageReference Include="NiceNotice" Version="0.1.0-build-20260329-202036-sha-73d625c" />
   </ItemGroup>
 
   <ItemGroup>

@@ -84,7 +84,7 @@ public class ExampleWebApiTests
   /// </summary>
   public record BeginSessionEvent
   {
-    [JsonPropertyName(name: "schema")]
+    [JsonPropertyName(name: "$schema")]
     public string Schema { get; init; } = string.Empty;
 
     [JsonPropertyName(name: "sessionId")]
@@ -102,7 +102,7 @@ public class ExampleWebApiTests
     [JsonPropertyName(name: "duration")]
     public TimeSpan? Duration { get; init; }
 
-    [JsonPropertyName(name: "schema")]
+    [JsonPropertyName(name: "$schema")]
     public string Schema { get; init; } = string.Empty;
 
     [JsonPropertyName(name: "sessionId")]

@@ -1,3 +1,5 @@
+using System.Net.Mime;
+
 using Amazon.SQS.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Integration.IoSanity.ImplementationDetails;
@@ -28,24 +30,53 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
   public async Task CanDispatchASingleNotice()
   {
     ISnsNoticeIo snsNoticeIo = awsTestHarness.GetSnsNoticeIo();
+    const string key = "example-key";
+    var keyValue = Guid.NewGuid().ToString();
+    Dictionary<string, string> metadata = new()
+    {
+      {
+        key, keyValue
+      }
+    };
+    const string contentType = MediaTypeNames.Text.Plain;
 
     // Act
     const string soloNoticeText = "Test notice raw text";
-    string rawTextResponse = await snsNoticeIo.DispatchAsync(
-      ConfiguredEventStreams.HighPriority,
-      soloNoticeText
+    IoNoticeDispatchResult rawTextResponse = await snsNoticeIo.DispatchAsync(
+      new IoRequestNotice(
+        ConfiguredEventStreams.HighPriority,
+        soloNoticeText,
+        metadata,
+        contentType
+      )
     );
 
     // Obtain verification values
     List<Message> queueMessages =
       (await awsTestHarness.GetMessagesInQueueAsync(
-        awsTestHarness.GetQueueArn(ConfiguredSnsTopics.HighPriority) ?? string.Empty
+        ConfiguredSnsTopics.HighPriority
       )).ToList();
 
     // Assert
-    await Assert
+    // Should be successful
+    rawTextResponse.Exception.ShouldBeNull();
+    // We should find it in the queue
+    Message message = await Assert
       .That((IEnumerable<Message>)queueMessages)
-      .Contains(message => message.ExtractSnsMessage() == soloNoticeText);
+      .Contains(message =>
+        {
+          string? snsMessage = message.ExtractSnsMessage();
+
+          return snsMessage == soloNoticeText;
+        }
+      );
+    // And it should have the metadata we expect
+    SnsEnvelope snsEnvelope = message.ExtractSnsEnvelope().ShouldNotBeNull();
+    snsEnvelope.MessageAttributes.ShouldNotBeNull();
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == key);
+    snsEnvelope.MessageAttributes[key].Value.ShouldBe(keyValue);
+    snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
+    snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }
 
   [Test]
@@ -53,27 +84,54 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
   {
     ISnsNoticeIo snsNoticeIo = awsTestHarness.GetSnsNoticeIo();
 
+    const string key = "example-key";
+    var value = Guid.NewGuid().ToString();
+    Dictionary<string, string> metadata = new()
+    {
+      {
+        key, value
+      }
+    };
+    const string contentType = MediaTypeNames.Text.Plain;
+
     // Act
     const string batchNoticeText = "Test notice text in a batch";
     BatchIoNoticeDispatchResult batchResponse = await snsNoticeIo.DispatchNoticesAsync(
-      new Dictionary<string, BatchedIoRequestNotice>
-      {
+      new BatchIoRequest(
+        new Dictionary<string, IoRequestNotice>
         {
-          "message-1", new BatchedIoRequestNotice(ConfiguredEventStreams.Errors, batchNoticeText)
+          {
+            "message-1", new IoRequestNotice(
+              ConfiguredEventStreams.Errors,
+              batchNoticeText,
+              metadata,
+              contentType
+            )
+          }
         }
-      }
+      )
     );
 
     // Obtain verification values
     List<Message> queueMessages =
       (await awsTestHarness.GetMessagesInQueueAsync(
-        awsTestHarness.GetQueueArn(ConfiguredSnsTopics.Errors) ?? string.Empty
+        ConfiguredSnsTopics.Errors
       )).ToList();
 
     // Assert
-    await Assert
+    // Should be successful
+    batchResponse.Failures.ShouldBeEmpty();
+    // We should find it in the queue
+    Message message = await Assert
       .That((IEnumerable<Message>)queueMessages)
       .Contains(message => message.ExtractSnsMessage() == batchNoticeText);
+    // And it should have the metadata we expect
+    SnsEnvelope snsEnvelope = message.ExtractSnsEnvelope().ShouldNotBeNull();
+    snsEnvelope.MessageAttributes.ShouldNotBeNull();
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == key);
+    snsEnvelope.MessageAttributes[key].Value.ShouldBe(value);
+    snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
+    snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }
 
   [Test]
@@ -140,6 +198,7 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     batch1Deserialized.ShouldBeEquivalentTo(batchEvent1);
     batch2Deserialized.ShouldBeEquivalentTo(batchEvent2);
   }
+
 
   public static class ConfiguredEventStreams
   {

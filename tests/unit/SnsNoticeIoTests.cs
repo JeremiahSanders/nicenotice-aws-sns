@@ -3,6 +3,7 @@ using Amazon.SimpleNotificationService.Model;
 
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
 using Jds.NiceNotice.Dispatching;
+using Jds.NiceNotice.TypedNotices.Metadata;
 using Jds.NiceNotice.TypedNotices.Serialization;
 using Jds.TestingUtils.Randomization;
 
@@ -21,7 +22,7 @@ public class SnsNoticeIoTests
     public void AllNoticesShouldBeReturnedAsFailures()
     {
       Arrangement.Notices.ShouldAllBe(expected =>
-        Arrangement.ActResponse.Failures.Any(failure => failure.Item1.BatchNoticeId == expected.Key)
+        Arrangement.ActResponse.Failures.Any(failure => failure.BatchNoticeId == expected.Key)
       );
     }
 
@@ -35,15 +36,15 @@ public class SnsNoticeIoTests
     public void FailuresShouldAllBeSnsIoExceptions()
     {
       Arrangement.ActResponse.Failures.ShouldAllBe(failure =>
-        failure.Item2.GetType() == typeof(SnsIoException) &&
-        failure.Item2.Message.StartsWith("Notice is too large.")
+        failure.Exception!.GetType() == typeof(SnsIoException) &&
+        failure.Exception.Message.StartsWith("Notice is too large.")
       );
     }
 
     [Test]
     public void ShouldReturnFailures()
     {
-      Arrangement.ActResponse.Failures.Count.ShouldBe(Arrangement.Notices.Count);
+      Arrangement.ActResponse.Failures.Count().ShouldBe(Arrangement.Notices.Count);
     }
 
     [Test]
@@ -129,7 +130,7 @@ public class SnsNoticeIoTests
     [Test]
     public void ShouldReturnAllSuccesses()
     {
-      Arrangement.ActResponse.Successes.Count.ShouldBe(Arrangement.Notices.Count);
+      Arrangement.ActResponse.Successes.Count().ShouldBe(Arrangement.Notices.Count);
       Arrangement.Notices.ShouldAllBe(expected =>
         Arrangement.ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key)
       );
@@ -187,7 +188,7 @@ public class SnsNoticeIoTests
     [Test]
     public void ShouldReturnAllSuccesses()
     {
-      Arrangement.ActResponse.Successes.Count.ShouldBe(Arrangement.Notices.Count);
+      Arrangement.ActResponse.Successes.Count().ShouldBe(Arrangement.Notices.Count);
       Arrangement.Notices.ShouldAllBe(expected =>
         Arrangement.ActResponse.Successes.Any(actual => actual.BatchNoticeId == expected.Key)
       );
@@ -213,27 +214,25 @@ public class SnsNoticeIoTests
       TopicResolver = topicResolver ?? TopicResolvers.Mapped([], DefaultTopic);
       Sut = new SnsNoticeIo(MockSns, TopicResolver);
       Serializer = Serializers.Json();
+      MetadataProvider = MetadataProviders.DefaultMetadataProvider();
 
-      Notices = new Dictionary<string, BatchedIoRequestNotice>();
+      Notices = new Dictionary<string, IoRequestNotice>();
       Streams = [];
-      ActResponse = new BatchIoNoticeDispatchResult
-      {
-        Failures = [],
-        Successes = []
-      };
+      ActResponse = new BatchIoNoticeDispatchResult([]);
     }
 
     public BatchIoNoticeDispatchResult ActResponse { get; private set; }
 
     public virtual BatchDispatchOptions? BatchDispatchOptions { get; }
     public string DefaultTopic { get; }
+    public NoticeMetadataProvider MetadataProvider { get; }
 
     /// <summary>
     ///   Gets a prearranged mock SNS service. By default, this is used by <see cref="SnsIo" />.
     /// </summary>
     public MockSns MockSns { get; }
 
-    public IReadOnlyDictionary<string, BatchedIoRequestNotice> Notices { get; private set; }
+    public IReadOnlyDictionary<string, IoRequestNotice> Notices { get; private set; }
 
     public NoticeSerializer Serializer { get; }
 
@@ -250,7 +249,10 @@ public class SnsNoticeIoTests
 
     protected override async Task ActAsync()
     {
-      ActResponse = await Sut.DispatchNoticesAsync(Notices, BatchDispatchOptions, CancellationToken.None);
+      ActResponse = await Sut.DispatchNoticesAsync(
+        new BatchIoRequest(Notices, BatchDispatchOptions),
+        CancellationToken.None
+      );
     }
 
     protected override Task ArrangeAsync()
@@ -260,12 +262,18 @@ public class SnsNoticeIoTests
         .ToList();
       Notices = Randomizer
         .Shared.Enumerable(
-          index => new BatchedIoRequestNotice(
-            Streams.GetRandomItem(),
-            Serializer.Serialize(
-              CreateEnterpriseEvent(index)
-            )
-          ),
+          index =>
+          {
+            ExampleBaseEnterpriseEvent ee = CreateEnterpriseEvent(index);
+            string serialized = Serializer.Serialize(ee);
+
+            return new IoRequestNotice(
+              Streams.GetRandomItem(),
+              serialized,
+              MetadataProvider.GetMetadata(ee, serialized, Serializer.ContentType),
+              Serializer.ContentType
+            );
+          },
           Streams.Count,
           Streams.Count * 10
         )

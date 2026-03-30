@@ -124,12 +124,12 @@ public class BatchWorkflow(
         .ToDictionary(notice => Guid.NewGuid().ToString(), BatchWorkerEvent (notice) => notice)
     };
     BatchTypedNoticeDispatchResult batchDispatchResults = await dispatcher.DispatchBatchAsync(events);
-    foreach ((BatchRoutedTypedNoticeResponse response, Exception exception) in batchDispatchResults.Failures)
+    foreach (BatchRoutedTypedNoticeResponse response in batchDispatchResults.Failures)
     {
       logger.LogError(
-        exception,
+        response.Exception,
         message: "Failed to dispatch extracted important information notice. {Notice}",
-        (BatchWorkerEvent)response.Notice
+        (BatchWorkerEvent)response.TypedNotice
       );
     }
 

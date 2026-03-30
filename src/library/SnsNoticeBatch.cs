@@ -23,7 +23,8 @@ internal class SnsNoticeBatch
     return new PublishBatchRequestEntry
     {
       Id = notice.BatchNoticeId,
-      Message = notice.Notice
+      Message = notice.Notice,
+      MessageAttributes = MessageAttributeDerivation.GetMessageAttributes(notice)
     };
   }
 }
