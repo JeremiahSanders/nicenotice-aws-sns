@@ -7,7 +7,7 @@ internal static class MessageAttributeDerivation
   private const string ContentTypeKey = "ContentType";
   private const string StringDataType = "String";
 
-  public static Dictionary<string, MessageAttributeValue>? GetMessageAttributes(IoRequestNotice notice)
+  public static Dictionary<string, MessageAttributeValue>? GetMessageAttributes(IoNoticeDispatchRequest notice)
   {
     Dictionary<string, MessageAttributeValue>? attributes = notice.Metadata?.Select(MetadataMap).ToDictionary();
 

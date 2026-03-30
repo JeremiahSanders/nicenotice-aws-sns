@@ -3,7 +3,7 @@
 Sends a notification message to a specified event stream using Amazon SNS.
 
 ```csharp
-public Task<IoNoticeDispatchResult> DispatchAsync(IoRequestNotice notice, 
+public Task<IoNoticeDispatchResult> DispatchAsync(IoNoticeDispatchRequest notice, 
     CancellationToken cancellationToken = default)
 ```
 

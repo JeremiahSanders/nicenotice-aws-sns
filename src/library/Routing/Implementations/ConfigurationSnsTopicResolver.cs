@@ -27,7 +27,6 @@ internal class ConfigurationSnsTopicResolver<TOptions> : ISnsTopicResolver
   ///   as the <see cref="IOptionsMonitor{TOptions}" /> interface provides a mechanism for observing changes
   ///   to the configuration throughout the application's lifetime.
   /// </param>
-  /// <typeparam name="TOptions">A configuration object which implements <see cref="ISnsTopicOptions" />.</typeparam>
   public ConfigurationSnsTopicResolver(IOptionsMonitor<TOptions> optionsMonitor)
   {
     _optionsMonitor = optionsMonitor;
