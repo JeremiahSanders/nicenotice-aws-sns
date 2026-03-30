@@ -113,7 +113,7 @@ public class BatchWorkflow(
 
     // Dispatch enterprise events to notify other applications of the extracted data.
     //   Parallelization requires that the dispatcher be thread-safe.
-    DispatchBatchRequest<BatchWorkerEvent> events = new()
+    BatchDispatchRequest<BatchWorkerEvent> events = new()
     {
       Notices = parsedData
         .Select(dataEntry => new ExtractedImportantInformation

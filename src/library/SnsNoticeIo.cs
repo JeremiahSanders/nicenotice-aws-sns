@@ -28,7 +28,7 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
   /// </exception>
   /// <exception cref="SnsIoException">Thrown when SNS throws an exception.</exception>
   public async Task<IoNoticeDispatchResult> DispatchAsync(
-    IoRequestNotice notice,
+    IoNoticeDispatchRequest notice,
     CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(notice);
@@ -83,17 +83,17 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
   ///   Uses the <see cref="ISnsTopicResolver" /> to determine the SNS topic ARN for each event stream
   ///   and dispatches the notices to the appropriate SNS topic in batches, using
   ///   <see cref="Amazon.SimpleNotificationService.IAmazonSimpleNotificationService.PublishBatchAsync" />.
-  ///   Exceptions are caught and returned in the <see cref="BatchIoNoticeDispatchResult" />.
+  ///   Exceptions are caught and returned in the <see cref="IoBatchNoticeDispatchResult" />.
   /// </summary>
   /// <param name="request">A batch dispatch request.</param>
   /// <param name="cancellationToken">An asynchronous operation cancellation token.</param>
   /// <returns>Returns the batch dispatch result.</returns>
-  public async Task<BatchIoNoticeDispatchResult> DispatchNoticesAsync(
-    BatchIoRequest request,
+  public async Task<IoBatchNoticeDispatchResult> DispatchNoticesAsync(
+    IoBatchNoticeDispatchRequest request,
     CancellationToken cancellationToken = new())
   {
-    ConcurrentBag<BatchedIoResponseNotice> failures = [];
-    ConcurrentBag<BatchedIoResponseNotice> successes = [];
+    ConcurrentBag<IoBatchNoticeDispatchResultItem> failures = [];
+    ConcurrentBag<IoBatchNoticeDispatchResultItem> successes = [];
 
     SnsNoticeBatchingResult batchRequests = SnsNoticeBatching.BatchNotices(topicResolver.GetTopicArn, request.Notices);
     failures.AddRange(batchRequests.Errors);
@@ -115,7 +115,7 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
           if (awsResponse == null)
           {
             failures.AddRange(
-              batch.Notices.Select(BatchedIoResponseNotice (notice) => new BatchedIoResponseNotice(
+              batch.Notices.Select(IoBatchNoticeDispatchResultItem (notice) => new IoBatchNoticeDispatchResultItem(
                   notice.BatchNoticeId,
                   notice.Stream,
                   notice.Notice,
@@ -129,7 +129,7 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
             return;
           }
 
-          List<BatchedIoResponseNotice> succeeded = awsResponse.Successful == null
+          List<IoBatchNoticeDispatchResultItem> succeeded = awsResponse.Successful == null
             ? []
             : awsResponse
               .Successful.Select(batchResultEntry =>
@@ -137,11 +137,11 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
                   return batch.Notices.FirstOrDefault(notice => batchResultEntry.Id == notice.BatchNoticeId);
                 }
               )
-              .OfType<BatchedIoResponseNotice>()
+              .OfType<IoBatchNoticeDispatchResultItem>()
               .ToList();
           successes.AddRange(succeeded);
 
-          List<BatchedIoResponseNotice> failed =
+          List<IoBatchNoticeDispatchResultItem> failed =
             awsResponse.Failed == null
               ? []
               : awsResponse
@@ -153,8 +153,8 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
                   }
                 )
                 .Where(obj => obj.notice != null)
-                .Select(BatchedIoResponseNotice (failureObject) =>
-                  new BatchedIoResponseNotice(
+                .Select(IoBatchNoticeDispatchResultItem (failureObject) =>
+                  new IoBatchNoticeDispatchResultItem(
                     failureObject.notice!.BatchNoticeId,
                     failureObject.notice.Stream,
                     failureObject.notice.Notice,
@@ -168,11 +168,11 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
                 .ToList();
           failures.AddRange(failed);
 
-          IEnumerable<BatchedIoResponseNotice> missingFromResponse =
+          IEnumerable<IoBatchNoticeDispatchResultItem> missingFromResponse =
             batch
               .Notices.Except(succeeded.Concat(failures.Select(tuple => tuple)))
-              .Select(BatchedIoResponseNotice (missingNotice) =>
-                new BatchedIoResponseNotice(
+              .Select(IoBatchNoticeDispatchResultItem (missingNotice) =>
+                new IoBatchNoticeDispatchResultItem(
                   missingNotice.BatchNoticeId,
                   missingNotice.Stream,
                   missingNotice.Notice,
@@ -189,13 +189,13 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
     }
     catch (TaskCanceledException taskCanceledException)
     {
-      IEnumerable<BatchedIoResponseNotice> toMarkFailed = request
+      IEnumerable<IoBatchNoticeDispatchResultItem> toMarkFailed = request
         .Notices
         .Where(kvp => successes.All(success => success.BatchNoticeId != kvp.Key) &&
                       failures.All(failure => failure.BatchNoticeId != kvp.Key)
         )
-        .Select(BatchedIoResponseNotice (missingNotice) =>
-          new BatchedIoResponseNotice(
+        .Select(IoBatchNoticeDispatchResultItem (missingNotice) =>
+          new IoBatchNoticeDispatchResultItem(
             missingNotice.Key,
             missingNotice.Value.Stream,
             missingNotice.Value.Notice,
@@ -211,7 +211,7 @@ public class SnsNoticeIo(IAmazonSimpleNotificationService snsClient, ISnsTopicRe
       failures.AddRange(toMarkFailed);
     }
 
-    return new BatchIoNoticeDispatchResult(failures.Concat(successes));
+    return new IoBatchNoticeDispatchResult(failures.Concat(successes));
   }
 
   /// <inheritdoc />

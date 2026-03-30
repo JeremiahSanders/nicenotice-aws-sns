@@ -16,5 +16,5 @@ internal class SnsNoticeBatchingResult
   ///   Gets the errors that occurred while attempting to batch the notices.
   ///   Generally this will be empty, but failures arise when messages are too large for SNS.
   /// </summary>
-  public required List<BatchedIoResponseNotice> Errors { get; init; }
+  public required List<IoBatchNoticeDispatchResultItem> Errors { get; init; }
 }

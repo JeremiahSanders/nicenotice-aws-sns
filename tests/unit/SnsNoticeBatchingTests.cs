@@ -128,8 +128,8 @@ public class SnsNoticeBatchingTests
     {
       public string BaseTopic { get; } = Randomizer.Shared.AwsSnsArn();
       public NoticeMetadataProvider MetadataProvider { get; } = MetadataProviders.DefaultMetadataProvider();
-      public List<IoRequestNotice> Notices { get; private set; } = [];
-      public Dictionary<string, IoRequestNotice> RequestNotices { get; private set; } = [];
+      public List<IoNoticeDispatchRequest> Notices { get; private set; } = [];
+      public Dictionary<string, IoNoticeDispatchRequest> RequestNotices { get; private set; } = [];
       public NoticeSerializer Serializer { get; } = Serializers.Json();
       public List<EventStreamId> Streams { get; private set; } = [];
 
@@ -163,7 +163,7 @@ public class SnsNoticeBatchingTests
               ExampleBaseEnterpriseEvent ee = CreateEnterpriseEvent(index);
               string serialized = Serializer.Serialize(ee);
 
-              return new IoRequestNotice(
+              return new IoNoticeDispatchRequest(
                 Streams.GetRandomItem(),
                 serialized,
                 MetadataProvider.GetMetadata(ee, serialized, Serializer.ContentType),

@@ -1,9 +1,9 @@
 # SnsNoticeIo.DispatchNoticesAsync method
 
-Uses the [`ISnsTopicResolver`](../ISnsTopicResolver.md) to determine the SNS topic ARN for each event stream and dispatches the notices to the appropriate SNS topic in batches, using CancellationToken). Exceptions are caught and returned in the BatchIoNoticeDispatchResult.
+Uses the [`ISnsTopicResolver`](../ISnsTopicResolver.md) to determine the SNS topic ARN for each event stream and dispatches the notices to the appropriate SNS topic in batches, using CancellationToken). Exceptions are caught and returned in the IoBatchNoticeDispatchResult.
 
 ```csharp
-public Task<BatchIoNoticeDispatchResult> DispatchNoticesAsync(BatchIoRequest request, 
+public Task<IoBatchNoticeDispatchResult> DispatchNoticesAsync(IoBatchNoticeDispatchRequest request, 
     CancellationToken cancellationToken = default)
 ```
 

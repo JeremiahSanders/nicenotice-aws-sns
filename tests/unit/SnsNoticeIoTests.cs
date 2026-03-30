@@ -216,12 +216,12 @@ public class SnsNoticeIoTests
       Serializer = Serializers.Json();
       MetadataProvider = MetadataProviders.DefaultMetadataProvider();
 
-      Notices = new Dictionary<string, IoRequestNotice>();
+      Notices = new Dictionary<string, IoNoticeDispatchRequest>();
       Streams = [];
-      ActResponse = new BatchIoNoticeDispatchResult([]);
+      ActResponse = new IoBatchNoticeDispatchResult([]);
     }
 
-    public BatchIoNoticeDispatchResult ActResponse { get; private set; }
+    public IoBatchNoticeDispatchResult ActResponse { get; private set; }
 
     public virtual BatchDispatchOptions? BatchDispatchOptions { get; }
     public string DefaultTopic { get; }
@@ -232,7 +232,7 @@ public class SnsNoticeIoTests
     /// </summary>
     public MockSns MockSns { get; }
 
-    public IReadOnlyDictionary<string, IoRequestNotice> Notices { get; private set; }
+    public IReadOnlyDictionary<string, IoNoticeDispatchRequest> Notices { get; private set; }
 
     public NoticeSerializer Serializer { get; }
 
@@ -250,7 +250,7 @@ public class SnsNoticeIoTests
     protected override async Task ActAsync()
     {
       ActResponse = await Sut.DispatchNoticesAsync(
-        new BatchIoRequest(Notices, BatchDispatchOptions),
+        new IoBatchNoticeDispatchRequest (Notices, BatchDispatchOptions),
         CancellationToken.None
       );
     }
@@ -267,7 +267,7 @@ public class SnsNoticeIoTests
             ExampleBaseEnterpriseEvent ee = CreateEnterpriseEvent(index);
             string serialized = Serializer.Serialize(ee);
 
-            return new IoRequestNotice(
+            return new IoNoticeDispatchRequest(
               Streams.GetRandomItem(),
               serialized,
               MetadataProvider.GetMetadata(ee, serialized, Serializer.ContentType),

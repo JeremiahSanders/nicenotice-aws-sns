@@ -43,7 +43,7 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     // Act
     const string soloNoticeText = "Test notice raw text";
     IoNoticeDispatchResult rawTextResponse = await snsNoticeIo.DispatchAsync(
-      new IoRequestNotice(
+      new IoNoticeDispatchRequest(
         ConfiguredEventStreams.HighPriority,
         soloNoticeText,
         metadata,
@@ -96,12 +96,12 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
 
     // Act
     const string batchNoticeText = "Test notice text in a batch";
-    BatchIoNoticeDispatchResult batchResponse = await snsNoticeIo.DispatchNoticesAsync(
-      new BatchIoRequest(
-        new Dictionary<string, IoRequestNotice>
+    IoBatchNoticeDispatchResult batchResponse = await snsNoticeIo.DispatchNoticesAsync(
+      new IoBatchNoticeDispatchRequest (
+        new Dictionary<string, IoNoticeDispatchRequest>
         {
           {
-            "message-1", new IoRequestNotice(
+            "message-1", new IoNoticeDispatchRequest(
               ConfiguredEventStreams.Errors,
               batchNoticeText,
               metadata,
@@ -180,7 +180,7 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     TypedNoticeDispatchResult<UserSessionStarted> soloDispatchResult = await dispatcher.DispatchAsync(soloEvent);
     BatchTypedNoticeDispatchResult batchDispatchResult =
       await dispatcher.DispatchBatchAsync(
-        DispatchBatchRequest<EnterpriseEvent>.CreateFromTypedNotices([batchEvent1, batchEvent2])
+        BatchDispatchRequest<EnterpriseEvent>.CreateFromTypedNotices([batchEvent1, batchEvent2])
       );
 
     // Obtain verification values

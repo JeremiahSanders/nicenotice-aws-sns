@@ -44,14 +44,14 @@ internal static class SnsNoticeBatching
   /// <returns>Returns the batching result.</returns>
   public static SnsNoticeBatchingResult BatchNotices(
     Func<EventStreamId, string> topicResolver,
-    IReadOnlyDictionary<string, IoRequestNotice> notices
+    IReadOnlyDictionary<string, IoNoticeDispatchRequest> notices
   )
   {
     List<SnsNoticeBatch> batchedNotices = [];
-    List<BatchedIoResponseNotice> errors = [];
+    List<IoBatchNoticeDispatchResultItem> errors = [];
 
     var responseNotices = notices
-      .Select(kvp => new BatchedIoResponseNotice(
+      .Select(kvp => new IoBatchNoticeDispatchResultItem(
           kvp.Key,
           kvp.Value.Stream,
           kvp.Value.Notice,
@@ -77,8 +77,8 @@ internal static class SnsNoticeBatching
     foreach (var noticesWithoutTopic in responseNotices.Where(obj => obj.topic == null))
     {
       errors.AddRange(
-        noticesWithoutTopic.notices.Select(BatchedIoResponseNotice (notice) =>
-          new BatchedIoResponseNotice(
+        noticesWithoutTopic.notices.Select(IoBatchNoticeDispatchResultItem (notice) =>
+          new IoBatchNoticeDispatchResultItem(
             notice.BatchNoticeId,
             notice.Stream,
             notice.Notice,
@@ -126,7 +126,7 @@ internal static class SnsNoticeBatching
       foreach (var noticeWithTooLargeMessage in topicGrouping.notices.Where(noticeStatus => noticeStatus.isTooLarge))
       {
         errors.Add(
-          new BatchedIoResponseNotice(
+          new IoBatchNoticeDispatchResultItem(
             noticeWithTooLargeMessage.notice.BatchNoticeId,
             noticeWithTooLargeMessage.notice.Stream,
             noticeWithTooLargeMessage.notice.Notice,
@@ -140,9 +140,9 @@ internal static class SnsNoticeBatching
       }
 
       // Now now handle the notices we might be able to batch
-      List<List<BatchedIoResponseNotice>> resultGroups = [];
+      List<List<IoBatchNoticeDispatchResultItem>> resultGroups = [];
       var currentByteSum = 0;
-      List<BatchedIoResponseNotice> currentBatch = [];
+      List<IoBatchNoticeDispatchResultItem> currentBatch = [];
 
       foreach (var noticeStatus in topicGrouping.notices.Where(noticeStatus => !noticeStatus.isTooLarge))
       {
