@@ -99,7 +99,7 @@ public class BatchWorkflowTests
       .Contains(snsMessage =>
         SnsJsonAssertions.MatchesMessageJsonPropertyExact(
           snsMessage.entry,
-          rootObjectPropertyName: "schema",
+          rootObjectPropertyName: "$schema",
           enterpriseEventName
         )
         && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
@@ -135,7 +135,7 @@ public class BatchWorkflowTests
       .Contains(snsMessage =>
         SnsJsonAssertions.MatchesMessageJsonPropertyExact(
           snsMessage,
-          rootObjectPropertyName: "schema",
+          rootObjectPropertyName: "$schema",
           enterpriseEventName
         )
         && SnsJsonAssertions.MatchesMessageJsonPropertyElement(

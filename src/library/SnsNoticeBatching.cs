@@ -44,14 +44,22 @@ internal static class SnsNoticeBatching
   /// <returns>Returns the batching result.</returns>
   public static SnsNoticeBatchingResult BatchNotices(
     Func<EventStreamId, string> topicResolver,
-    IReadOnlyDictionary<string, BatchedIoRequestNotice> notices
+    IReadOnlyDictionary<string, IoRequestNotice> notices
   )
   {
     List<SnsNoticeBatch> batchedNotices = [];
-    List<(BatchedIoResponseNotice, Exception)> errors = [];
+    List<BatchedIoResponseNotice> errors = [];
 
     var responseNotices = notices
-      .Select(kvp => new BatchedIoResponseNotice(kvp.Key, kvp.Value.Stream, kvp.Value.Notice))
+      .Select(kvp => new BatchedIoResponseNotice(
+          kvp.Key,
+          kvp.Value.Stream,
+          kvp.Value.Notice,
+          kvp.Value.Metadata,
+          kvp.Value.ContentType,
+          exception: null
+        )
+      )
       .GroupBy(notice => notice.Stream)
       .Select(streamGrouping =>
         {
@@ -69,8 +77,15 @@ internal static class SnsNoticeBatching
     foreach (var noticesWithoutTopic in responseNotices.Where(obj => obj.topic == null))
     {
       errors.AddRange(
-        noticesWithoutTopic.notices.Select((BatchedIoResponseNotice, Exception) (obj) =>
-          (obj, new SnsIoException($"Cannot determine AWS SNS topic ARN for event stream `{obj.Stream}`."))
+        noticesWithoutTopic.notices.Select(BatchedIoResponseNotice (notice) =>
+          new BatchedIoResponseNotice(
+            notice.BatchNoticeId,
+            notice.Stream,
+            notice.Notice,
+            notice.Metadata,
+            notice.ContentType,
+            new SnsIoException($"Cannot determine AWS SNS topic ARN for event stream `{notice.Stream}`.")
+          )
         )
       );
     }
@@ -111,10 +126,16 @@ internal static class SnsNoticeBatching
       foreach (var noticeWithTooLargeMessage in topicGrouping.notices.Where(noticeStatus => noticeStatus.isTooLarge))
       {
         errors.Add(
-          (noticeWithTooLargeMessage.notice,
+          new BatchedIoResponseNotice(
+            noticeWithTooLargeMessage.notice.BatchNoticeId,
+            noticeWithTooLargeMessage.notice.Stream,
+            noticeWithTooLargeMessage.notice.Notice,
+            noticeWithTooLargeMessage.notice.Metadata,
+            noticeWithTooLargeMessage.notice.ContentType,
             new SnsIoException(
               $"Notice is too large. AWS SNS limits messages to {MaximumBytes} bytes. Size: {noticeWithTooLargeMessage.byteCount} bytes."
-            ))
+            )
+          )
         );
       }
 

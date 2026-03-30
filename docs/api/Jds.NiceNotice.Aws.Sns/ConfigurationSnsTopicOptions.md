@@ -18,7 +18,7 @@ public class ConfigurationSnsTopicOptions : ISnsTopicOptions
 
 It is expected that this class is configured using the IConfiguration API, e.g., using an `appsettings.json` file, environment variables, or runtime arguments.
 
-This class is registered as an IOptions service when using the !:SnsNotificationBuilderExtensions.DispatchToSns(NiceNoticeBuilder,string,ServiceLifetime) extension method during application startup.
+This class is registered as an IOptions service when using the [`DispatchToSns`](./SnsNotificationBuilderExtensions/DispatchToSns.md) extension method during application startup.
 
 ## See Also
 

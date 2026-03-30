@@ -77,6 +77,17 @@ public class AwsTestHarness : IAsyncInitializer
       : [];
   }
 
+  /// <summary>
+  ///   Retrieves all messages from the specified queue.
+  /// </summary>
+  public async Task<IEnumerable<Message>> GetMessagesInQueueAsync(ConfiguredSnsTopics snsTopic)
+  {
+    return await GetMessagesInQueueAsync(
+      GetQueueArn(snsTopic) ??
+      throw new ArgumentOutOfRangeException($"{snsTopic} is not recognized by {nameof(GetQueueArn)}")
+    );
+  }
+
   public string? GetMessageStreamArn(ConfiguredSnsTopics topic)
   {
     return GetConfiguration().GetMessageStreamArn(topic);

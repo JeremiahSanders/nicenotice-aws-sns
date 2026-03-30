@@ -3,14 +3,13 @@
 Sends a notification message to a specified event stream using Amazon SNS.
 
 ```csharp
-public Task<string> DispatchAsync(EventStreamId stream, string notice, 
+public Task<IoNoticeDispatchResult> DispatchAsync(IoRequestNotice notice, 
     CancellationToken cancellationToken = default)
 ```
 
 | parameter | description |
 | --- | --- |
-| stream | The event stream to which the notification will be dispatched. |
-| notice | The notification message to be sent. |
+| notice | The notification which is being dispatched. |
 | cancellationToken | A cancellation token to observe while waiting for the task to complete. |
 
 ## Return Value

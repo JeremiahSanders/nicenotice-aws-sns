@@ -3,16 +3,13 @@
 Uses the [`ISnsTopicResolver`](../ISnsTopicResolver.md) to determine the SNS topic ARN for each event stream and dispatches the notices to the appropriate SNS topic in batches, using CancellationToken). Exceptions are caught and returned in the BatchIoNoticeDispatchResult.
 
 ```csharp
-public Task<BatchIoNoticeDispatchResult> DispatchNoticesAsync(
-    IReadOnlyDictionary<string, BatchedIoRequestNotice> notices, 
-    BatchDispatchOptions? batchDispatchOptions = null, 
+public Task<BatchIoNoticeDispatchResult> DispatchNoticesAsync(BatchIoRequest request, 
     CancellationToken cancellationToken = default)
 ```
 
 | parameter | description |
 | --- | --- |
-| notices | A dictionary of notices to dispatch, where keys are their identities within the batch. |
-| batchDispatchOptions | Batch dispatch options. Optional. |
+| request | A batch dispatch request. |
 | cancellationToken | An asynchronous operation cancellation token. |
 
 ## Return Value

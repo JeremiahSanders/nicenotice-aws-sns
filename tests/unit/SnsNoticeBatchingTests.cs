@@ -1,5 +1,5 @@
 using Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
-using Jds.NiceNotice.Dispatching;
+using Jds.NiceNotice.TypedNotices.Metadata;
 using Jds.NiceNotice.TypedNotices.Serialization;
 using Jds.TestingUtils.Randomization;
 
@@ -127,8 +127,9 @@ public class SnsNoticeBatchingTests
     public abstract class RandomBatchesArrangement : BaseCaseArrangement
     {
       public string BaseTopic { get; } = Randomizer.Shared.AwsSnsArn();
-      public List<BatchedIoRequestNotice> Notices { get; private set; } = [];
-      public Dictionary<string, BatchedIoRequestNotice> RequestNotices { get; private set; } = [];
+      public NoticeMetadataProvider MetadataProvider { get; } = MetadataProviders.DefaultMetadataProvider();
+      public List<IoRequestNotice> Notices { get; private set; } = [];
+      public Dictionary<string, IoRequestNotice> RequestNotices { get; private set; } = [];
       public NoticeSerializer Serializer { get; } = Serializers.Json();
       public List<EventStreamId> Streams { get; private set; } = [];
 
@@ -157,12 +158,18 @@ public class SnsNoticeBatchingTests
           .ToList();
         Notices = Randomizer
           .Shared.Enumerable(
-            index => new BatchedIoRequestNotice(
-              Streams.GetRandomItem(),
-              Serializer.Serialize(
-                CreateEnterpriseEvent(index)
-              )
-            ),
+            index =>
+            {
+              ExampleBaseEnterpriseEvent ee = CreateEnterpriseEvent(index);
+              string serialized = Serializer.Serialize(ee);
+
+              return new IoRequestNotice(
+                Streams.GetRandomItem(),
+                serialized,
+                MetadataProvider.GetMetadata(ee, serialized, Serializer.ContentType),
+                Serializer.ContentType
+              );
+            },
             Streams.Count,
             Streams.Count * 10
           )

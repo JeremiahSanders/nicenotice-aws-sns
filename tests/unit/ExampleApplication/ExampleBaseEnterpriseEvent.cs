@@ -23,7 +23,7 @@ namespace Jds.NiceNotice.Aws.Sns.Tests.Unit.ExampleApplication;
 ///     Implementers should consider strongly the required/shared properties on a typed notice.
 ///   </para>
 /// </remarks>
-public record ExampleBaseEnterpriseEvent
+public record ExampleBaseEnterpriseEvent : INoticeMetadata
 {
   /// <summary>
   ///   Gets the name of this schema/type of enterprise event.
@@ -38,6 +38,19 @@ public record ExampleBaseEnterpriseEvent
   ///   (in general, understood to mean &quot;when&quot; this event occurred).
   /// </summary>
   public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+
+  public IReadOnlyDictionary<string, string>? GetMetadata()
+  {
+    return new Dictionary<string, string>
+    {
+      {
+        "name", Name
+      },
+      {
+        "timestamp", Timestamp.ToString(format: "o")
+      }
+    };
+  }
 
   protected static string CreateEventName(string eventTitle, int eventSchemaRevision)
   {

@@ -5,8 +5,8 @@
 services:
 
   localstack:
-    container_name: localstack-4
-    image: localstack/localstack:4
+    container_name: localstack-community-archive
+    image: localstack/localstack:community-archive
     ports:
       - "127.0.0.1:4566:4566"            # LocalStack Gateway
       - "127.0.0.1:4510-4559:4510-4559"  # external services port range
