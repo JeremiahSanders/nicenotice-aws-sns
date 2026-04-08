@@ -1,0 +1,55 @@
+##
+# Project-specific CI environment extensions
+##
+
+services:
+
+  # cicee execution service.
+  ci-exec:
+    depends_on:
+       - localstack
+    environment:
+      # Environment variables with only a key are resolved to their values on the machine running (Docker) Compose.
+      #--
+      # Project
+      #--
+      NUGET_API_KEY:
+      NUGET_SOURCE:
+      # SNS ServiceURL used by integration tests
+      TESTS__AWS__SNS__SERVICEURL: "http://localstack:4566"
+      TESTS__AWS__SQS__SERVICEURL: "http://localstack:4566"
+      # Integration test LocalStack dependencies
+      TESTS__TOPICS__PRIMARY: "arn:aws:sns:us-east-1:000000000000:primary-message-stream"
+      TESTS__TOPICS__HIGHPRIORITY: "arn:aws:sns:us-east-1:000000000000:high-priority-message-stream"
+      TESTS__TOPICS__ERRORS: "arn:aws:sns:us-east-1:000000000000:error-stream"
+      TESTS__QUEUES__PRIMARY: "http://localstack:4566/000000000000/primary-queue"
+      TESTS__QUEUES__HIGHPRIORITY: "http://localstack:4566/000000000000/high-priority-queue"
+      TESTS__QUEUES__ERRORS: "http://localstack:4566/000000000000/error-queue"
+    volumes:
+      # Hide host build results
+      - type: volume
+        target: /code/src/library/bin
+      - type: volume
+        target: /code/src/library/obj
+      - type: volume
+        target: /code/tests/unit/bin
+      - type: volume
+        target: /code/tests/unit/obj
+      - type: volume
+        target: /code/tests/integration/bin
+      - type: volume
+        target: /code/tests/integration/obj
+      - type: volume
+        target: /code/tests/example-console/bin
+      - type: volume
+        target: /code/tests/example-console/obj
+      - type: volume
+        target: /code/tests/example-webapi/bin
+      - type: volume
+        target: /code/tests/example-webapi/obj
+      - type: volume
+        target: /code/ci/markdown-generator/bin
+      - type: volume
+        target: /code/ci/markdown-generator/obj
+    # NOTE: Root user specified below helps address permissions errors when using the default CICEE Dockerfile.
+    user: root
