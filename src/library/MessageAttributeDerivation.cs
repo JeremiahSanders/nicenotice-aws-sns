@@ -4,7 +4,6 @@ namespace Jds.NiceNotice.Aws.Sns;
 
 internal static class MessageAttributeDerivation
 {
-  private const string ContentTypeKey = "ContentType";
   private const string NumberDataType = "Number";
   private const string StringDataType = "String";
 
@@ -12,39 +11,33 @@ internal static class MessageAttributeDerivation
   {
     Dictionary<string, MessageAttributeValue>? attributes = notice
       .Metadata?
+      .Select(GetValues)
       .Where(RequireNonNullOrEmptyNameAndValue)
       .Select(MetadataMap)
       .ToDictionary();
 
-    // Set content type, but only if it's not already set
-    if (!string.IsNullOrWhiteSpace(notice.ContentType) &&
-        (attributes == null || !attributes.ContainsKey(ContentTypeKey)))
+    return attributes is {Count: > 0} ? attributes : null;
+
+    static (string key, string value, string dataType) GetValues(KeyValuePair<string, NoticeMetadataValue> kvp)
     {
-      attributes ??= new Dictionary<string, MessageAttributeValue>();
-      attributes[ContentTypeKey] = new MessageAttributeValue
-      {
-        StringValue = notice.ContentType,
-        DataType = StringDataType
-      };
+      return (kvp.Key, kvp.Value.ToString(), kvp.Value.IsInt || kvp.Value.IsDouble ? NumberDataType : StringDataType);
     }
 
-    return attributes;
-
-    static bool RequireNonNullOrEmptyNameAndValue(KeyValuePair<string, NoticeMetadataValue> kvp)
+    static bool RequireNonNullOrEmptyNameAndValue((string key, string value, string dataType) tuple)
     {
       // Corresponds to "Name, type, and value must not be empty or null."
       // Source: https://docs.aws.amazon.com/sdkfornet/v4/apidocs/items/SNS/TMessageAttributeValue.html
-      return !string.IsNullOrEmpty(kvp.Key) && !string.IsNullOrEmpty(kvp.Value.ToString());
+      return !string.IsNullOrEmpty(tuple.key) && !string.IsNullOrEmpty(tuple.value);
     }
 
-    static KeyValuePair<string, MessageAttributeValue> MetadataMap(KeyValuePair<string, NoticeMetadataValue> kvp)
+    static KeyValuePair<string, MessageAttributeValue> MetadataMap((string key, string value, string dataType) tuple)
     {
       return new KeyValuePair<string, MessageAttributeValue>(
-        kvp.Key,
+        tuple.key,
         new MessageAttributeValue
         {
-          StringValue = kvp.Value.ToString(),
-          DataType = kvp.Value.IsInt || kvp.Value.IsDouble ? NumberDataType : StringDataType
+          StringValue = tuple.value,
+          DataType = tuple.dataType
         }
       );
     }

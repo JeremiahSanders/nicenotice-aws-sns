@@ -92,8 +92,6 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == doubleKey);
     snsEnvelope.MessageAttributes[doubleKey].Type.ShouldBe(expected: "Number");
     snsEnvelope.MessageAttributes[doubleKey].Value.ShouldBe(doubleValue.ToString(CultureInfo.InvariantCulture));
-    snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
-    snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }
 
   [Test]
@@ -163,8 +161,6 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == doubleKey);
     snsEnvelope.MessageAttributes[doubleKey].Type.ShouldBe(expected: "Number");
     snsEnvelope.MessageAttributes[doubleKey].Value.ShouldBe(doubleValue.ToString(CultureInfo.InvariantCulture));
-    snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
-    snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }
 
   [Test]
