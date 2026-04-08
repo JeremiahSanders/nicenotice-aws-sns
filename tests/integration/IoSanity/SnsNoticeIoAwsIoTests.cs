@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Mime;
 
 using Amazon.SQS.Model;
@@ -32,10 +33,20 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     ISnsNoticeIo snsNoticeIo = awsTestHarness.GetSnsNoticeIo();
     const string key = "example-key";
     var keyValue = Guid.NewGuid().ToString();
-    Dictionary<string, string> metadata = new()
+    const string intKey = "int-key";
+    int intValue = Randomizer.Shared.Int();
+    const string doubleKey = "double-key";
+    double doubleValue = Randomizer.Shared.Double();
+    Dictionary<string, NoticeMetadataValue> metadata = new()
     {
       {
         key, keyValue
+      },
+      {
+        intKey, intValue
+      },
+      {
+        doubleKey, doubleValue
       }
     };
     const string contentType = MediaTypeNames.Text.Plain;
@@ -75,6 +86,12 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     snsEnvelope.MessageAttributes.ShouldNotBeNull();
     snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == key);
     snsEnvelope.MessageAttributes[key].Value.ShouldBe(keyValue);
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == intKey);
+    snsEnvelope.MessageAttributes[intKey].Type.ShouldBe(expected: "Number");
+    snsEnvelope.MessageAttributes[intKey].Value.ShouldBe(intValue.ToString());
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == doubleKey);
+    snsEnvelope.MessageAttributes[doubleKey].Type.ShouldBe(expected: "Number");
+    snsEnvelope.MessageAttributes[doubleKey].Value.ShouldBe(doubleValue.ToString(CultureInfo.InvariantCulture));
     snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
     snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }
@@ -86,10 +103,20 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
 
     const string key = "example-key";
     var value = Guid.NewGuid().ToString();
-    Dictionary<string, string> metadata = new()
+    const string intKey = "int-key";
+    int intValue = Randomizer.Shared.Int();
+    const string doubleKey = "double-key";
+    double doubleValue = Randomizer.Shared.Double();
+    Dictionary<string, NoticeMetadataValue> metadata = new()
     {
       {
         key, value
+      },
+      {
+        intKey, intValue
+      },
+      {
+        doubleKey, doubleValue
       }
     };
     const string contentType = MediaTypeNames.Text.Plain;
@@ -97,7 +124,7 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     // Act
     const string batchNoticeText = "Test notice text in a batch";
     IoBatchNoticeDispatchResult batchResponse = await snsNoticeIo.DispatchNoticesAsync(
-      new IoBatchNoticeDispatchRequest (
+      new IoBatchNoticeDispatchRequest(
         new Dictionary<string, IoNoticeDispatchRequest>
         {
           {
@@ -130,6 +157,12 @@ public class SnsNoticeIoAwsIoTests(AwsTestHarness awsTestHarness)
     snsEnvelope.MessageAttributes.ShouldNotBeNull();
     snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == key);
     snsEnvelope.MessageAttributes[key].Value.ShouldBe(value);
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == intKey);
+    snsEnvelope.MessageAttributes[intKey].Type.ShouldBe(expected: "Number");
+    snsEnvelope.MessageAttributes[intKey].Value.ShouldBe(intValue.ToString());
+    snsEnvelope.MessageAttributes.ShouldContain(kvp => kvp.Key == doubleKey);
+    snsEnvelope.MessageAttributes[doubleKey].Type.ShouldBe(expected: "Number");
+    snsEnvelope.MessageAttributes[doubleKey].Value.ShouldBe(doubleValue.ToString(CultureInfo.InvariantCulture));
     snsEnvelope.MessageAttributes.Keys.ShouldContain(expected: "ContentType");
     snsEnvelope.MessageAttributes[key: "ContentType"].Value.ShouldBe(contentType);
   }

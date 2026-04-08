@@ -39,15 +39,18 @@ public record ExampleBaseEnterpriseEvent : INoticeMetadata
   /// </summary>
   public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 
-  public IReadOnlyDictionary<string, string>? GetMetadata()
+  public IReadOnlyDictionary<string, NoticeMetadataValue>? GetMetadata()
   {
-    return new Dictionary<string, string>
+    return new Dictionary<string, NoticeMetadataValue>
     {
       {
         "name", Name
       },
       {
         "timestamp", Timestamp.ToString(format: "o")
+      },
+      {
+        "epoch", new DateTimeOffset(Timestamp).ToUnixTimeSeconds()
       }
     };
   }

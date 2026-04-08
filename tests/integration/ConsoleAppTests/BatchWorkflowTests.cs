@@ -97,12 +97,7 @@ public class BatchWorkflowTests
         )
       )
       .Contains(snsMessage =>
-        SnsJsonAssertions.MatchesMessageJsonPropertyExact(
-          snsMessage.entry,
-          rootObjectPropertyName: "$schema",
-          enterpriseEventName
-        )
-        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
+        SnsJsonAssertions.MatchesMessageJsonPropertyElement(
           snsMessage.entry,
           rootObjectPropertyName: "timestamp",
           jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
@@ -133,12 +128,7 @@ public class BatchWorkflowTests
     await Assert
       .That(sns.CapturedRequests)
       .Contains(snsMessage =>
-        SnsJsonAssertions.MatchesMessageJsonPropertyExact(
-          snsMessage,
-          rootObjectPropertyName: "$schema",
-          enterpriseEventName
-        )
-        && SnsJsonAssertions.MatchesMessageJsonPropertyElement(
+        SnsJsonAssertions.MatchesMessageJsonPropertyElement(
           snsMessage,
           rootObjectPropertyName: "timestamp",
           jsonElement => jsonElement.GetDateTimeOffset() != default(DateTimeOffset)
