@@ -2,7 +2,7 @@
   "name": "nice-notice-aws-sns",
   "description": "",
   "title": "NiceNotice.Aws.Sns",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "ciEnvironment": {
     "variables": [
       {
