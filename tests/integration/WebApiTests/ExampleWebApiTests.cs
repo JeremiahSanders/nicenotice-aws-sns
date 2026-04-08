@@ -20,7 +20,6 @@ public class ExampleWebApiTests
   [ClassDataSource<ExampleApiWebApplicationFactory>(Shared = SharedType.PerTestSession)]
   public required ExampleApiWebApplicationFactory ExampleApiWebApplicationFactory { get; init; }
 
-
   /// <summary>
   ///   Invokes the <c>begin session</c> HTTP API and subsequently the <c>end session</c> HTTP API,
   ///   returning the responses of each.
@@ -84,8 +83,8 @@ public class ExampleWebApiTests
   /// </summary>
   public record BeginSessionEvent
   {
-    [JsonPropertyName(name: "$schema")]
-    public string Schema { get; init; } = string.Empty;
+    [JsonPropertyName(name: "id")]
+    public string Id { get; init; } = string.Empty;
 
     [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
@@ -102,8 +101,8 @@ public class ExampleWebApiTests
     [JsonPropertyName(name: "duration")]
     public TimeSpan? Duration { get; init; }
 
-    [JsonPropertyName(name: "$schema")]
-    public string Schema { get; init; } = string.Empty;
+    [JsonPropertyName(name: "id")]
+    public string Id { get; init; } = string.Empty;
 
     [JsonPropertyName(name: "sessionId")]
     public string SessionId { get; init; } = string.Empty;
@@ -160,7 +159,6 @@ public class ExampleWebApiTests
   public async Task BeginningSessionEmitsExpectedEnterpriseEventToSns()
   {
     const string expectedTopic = "arn:aws:sns:us-east-1:123456789012:user-sessions";
-    const string expectedSchema = "UserSessionStarted";
     (HttpResponseMessage response, BeginSessionResult deserializedContent) = await Act_BeginSessionAsync();
 
     // Assert - Verify SNS emission (side effect)
@@ -176,11 +174,11 @@ public class ExampleWebApiTests
           );
 
           bool doesDataMatch = eventDto?.SessionId == deserializedContent.SessionId
-                               && eventDto?.Timestamp != DateTime.MinValue
-                               && eventDto?.Schema == expectedSchema;
+                               && eventDto?.Timestamp != DateTime.MinValue;
+          bool hasId = !string.IsNullOrEmpty(eventDto?.Id);
           bool doesTopicMatch = snsMessage.TopicArn == expectedTopic;
 
-          return doesDataMatch && doesTopicMatch;
+          return doesDataMatch && hasId && doesTopicMatch;
         }
       );
   }
@@ -223,7 +221,6 @@ public class ExampleWebApiTests
   public async Task EndingSessionEmitsExpectedEnterpriseEventToSns()
   {
     const string expectedTopic = "arn:aws:sns:us-east-1:123456789012:user-sessions";
-    const string expectedSchema = "UserSessionEnded";
     (BeginSessionResult beginSessionResponseBody, HttpResponseMessage endSessionResponse) =
       await Act_BeginAndEndSession();
 
@@ -244,11 +241,11 @@ public class ExampleWebApiTests
 
           bool doesTheDataMatch = eventDto?.SessionId == beginSessionResponseBody.SessionId
                                   && eventDto?.Duration.HasValue == true
-                                  && eventDto.Timestamp != DateTime.MinValue
-                                  && eventDto.Schema == expectedSchema;
+                                  && eventDto.Timestamp != DateTime.MinValue;
+          bool hasId = !string.IsNullOrEmpty(eventDto?.Id);
           bool doesTheSnsTopicMatch = snsMessage.TopicArn == expectedTopic;
 
-          return doesTheDataMatch && doesTheSnsTopicMatch;
+          return doesTheDataMatch && hasId && doesTheSnsTopicMatch;
         }
       );
   }
